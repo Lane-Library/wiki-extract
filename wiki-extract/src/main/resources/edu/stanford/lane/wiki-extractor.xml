@@ -6,8 +6,8 @@
 		<property name="extractors">
 			<list>
 				<bean class="edu.stanford.lane.WikiExtractor">
-					<constructor-arg name="urlPattern" value="www.ncbi.nlm.nih.gov"/>
-					<constructor-arg name="outputPath" value="/Users/ryanmax/workspaces/workbench/wiki-extract/data"/>
+					<constructor-arg name="urlPattern" value="${wiki-extractor.urlPattern}"/>
+					<constructor-arg name="outputPath" value="${wiki-extractor.outputPath}"/>
 					<constructor-arg name="languages">
     					<list>
 							<value>ab</value>
@@ -302,4 +302,7 @@
 		<property name="maxPoolSize" value="3"/>
 		<property name="queueCapacity" value="0"/>
 	</bean>
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations" value="file:wiki-extractor.properties"/>
+    </bean>
 </beans>
