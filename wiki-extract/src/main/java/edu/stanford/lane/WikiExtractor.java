@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -46,7 +47,7 @@ public class WikiExtractor implements Extractor {
 
     private DocumentBuilderFactory factory;
 
-    private List<String> languages;
+    private List<String> languages = new ArrayList<>();
 
     private Logger log = LoggerFactory.getLogger(getClass());
 
@@ -56,9 +57,11 @@ public class WikiExtractor implements Extractor {
 
     private XPath xpath;
 
-    public WikiExtractor(final String urlPattern, final String outputPath, final List<String> languages) {
+    public WikiExtractor(final String urlPattern, final String outputPath, final String languages) {
         this.urlPattern = urlPattern;
-        this.languages = languages;
+        for (String l : languages.split(",")) {
+            this.languages.add(l);
+        }
         this.factory = DocumentBuilderFactory.newInstance();
         this.xpath = XPathFactory.newInstance().newXPath();
         String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
