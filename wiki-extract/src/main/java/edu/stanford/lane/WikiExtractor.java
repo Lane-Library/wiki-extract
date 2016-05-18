@@ -45,7 +45,11 @@ public class WikiExtractor implements Extractor {
 
     private static final String PROTOCOL = "https://";
 
+    private String euquery;
+
     private DocumentBuilderFactory factory;
+
+    private boolean filter = true;
 
     private List<String> languages = new ArrayList<>();
 
@@ -55,13 +59,17 @@ public class WikiExtractor implements Extractor {
 
     private String path;
 
-    private String urlPattern;
+    private String urlFilter;
 
     private XPath xpath;
 
-    public WikiExtractor(final String urlPattern, final String outputPath, final String languages,
+    public WikiExtractor(final String euquery, final String urlFilter, final String outputPath, final String languages,
             final String namespace) {
-        this.urlPattern = urlPattern;
+        this.euquery = euquery;
+        this.urlFilter = urlFilter;
+        if (null == this.urlFilter || this.urlFilter.isEmpty()) {
+            this.filter = false;
+        }
         this.namespace = namespace;
         for (String l : languages.split(",")) {
             this.languages.add(l);
@@ -87,7 +95,7 @@ public class WikiExtractor implements Extractor {
     }
 
     public void extract(final String lang) {
-        String query = PROTOCOL + lang + BASE_URL + "&euquery=" + this.urlPattern + "&eunamespace=" + this.namespace;
+        String query = PROTOCOL + lang + BASE_URL + "&euquery=" + this.euquery + "&eunamespace=" + this.namespace;
         File directory = new File(this.path + "/" + lang);
         if (!directory.exists()) {
             directory.mkdir();
@@ -100,7 +108,7 @@ public class WikiExtractor implements Extractor {
             boolean more = true;
             int offset = 0;
             while (more) {
-                String xmlContent = getContent(query + offset);
+                String xmlContent = getContent(query + "&euoffset=" + offset);
                 Document doc;
                 NodeList euNodes = null;
                 try {
@@ -116,14 +124,7 @@ public class WikiExtractor implements Extractor {
                     euNodes = (NodeList) this.xpath.evaluate("/api/query/exturlusage/eu", doc, XPathConstants.NODESET);
                     for (int n = 0; n < euNodes.getLength(); n++) {
                         Element el = (Element) euNodes.item(n);
-                        StringBuilder sb = new StringBuilder();
-                        sb.append(lang);
-                        sb.append("\t" + el.getAttribute("pageid"));
-                        sb.append("\t" + el.getAttribute("ns"));
-                        sb.append("\t" + el.getAttribute("title"));
-                        sb.append("\t" + el.getAttribute("url"));
-                        sb.append("\n");
-                        outFos.write(sb.toString().getBytes());
+                        maybeWriteLine(lang, el, outFos);
                     }
                 } catch (SAXException | IOException | ParserConfigurationException | XPathExpressionException e) {
                     this.log.error("failed to fetch data", e);
@@ -151,5 +152,19 @@ public class WikiExtractor implements Extractor {
             method.abort();
         }
         return htmlContent;
+    }
+
+    private void maybeWriteLine(final String lang, final Element el, final FileOutputStream fos) throws IOException {
+        String url = el.getAttribute("url");
+        if (!this.filter || url.contains(this.urlFilter)) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(lang);
+            sb.append("\t" + el.getAttribute("pageid"));
+            sb.append("\t" + el.getAttribute("ns"));
+            sb.append("\t" + el.getAttribute("title"));
+            sb.append("\t" + url);
+            sb.append("\n");
+            fos.write(sb.toString().getBytes());
+        }
     }
 }
