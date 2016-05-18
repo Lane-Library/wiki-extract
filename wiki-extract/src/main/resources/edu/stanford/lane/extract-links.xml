@@ -5,12 +5,12 @@
 	<bean id="main" class="edu.stanford.lane.Main">
 		<property name="extractors">
 			<list>
-				<bean class="edu.stanford.lane.WikiExtractor">
-					<constructor-arg name="euquery" value="${wiki-extractor.euquery}"/>
-					<constructor-arg name="urlFilter" value="${wiki-extractor.urlFilter}"/>
-					<constructor-arg name="outputPath" value="${wiki-extractor.outputPath}"/>
-					<constructor-arg name="languages" value="${wiki-extractor.languages}"/>
-					<constructor-arg name="namespace" value="${wiki-extractor.namespace}"/>
+				<bean class="edu.stanford.lane.WikiLinkExtractor">
+					<constructor-arg name="euquery" value="${wiki-link-extractor.euquery}"/>
+					<constructor-arg name="urlFilter" value="${wiki-link-extractor.urlFilter}"/>
+					<constructor-arg name="outputPath" value="${wiki-link-extractor.outputPath}"/>
+					<constructor-arg name="languages" value="${wiki-link-extractor.languages}"/>
+					<constructor-arg name="namespace" value="${wiki-link-extractor.namespace}"/>
 				</bean>
 			</list>
 		</property>

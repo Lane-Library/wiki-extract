@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd">
+    <bean id="main" class="edu.stanford.lane.Main">
+        <property name="extractors">
+            <list>
+                <bean class="edu.stanford.lane.WikiPageExtractor">
+                    <constructor-arg name="outputPath" value="${wiki-page-extractor.outputPath}"/>
+                    <constructor-arg name="categories" value="${wiki-page-extractor.categories}"/>
+                </bean>
+                <bean class="edu.stanford.lane.WikiLinkExtractor">
+                    <constructor-arg name="euquery" value="${wiki-link-extractor.euquery}"/>
+                    <constructor-arg name="urlFilter" value="${wiki-link-extractor.urlFilter}"/>
+                    <constructor-arg name="outputPath" value="${wiki-link-extractor.outputPath}"/>
+                    <constructor-arg name="languages" value="${wiki-link-extractor.languages}"/>
+                    <constructor-arg name="namespace" value="${wiki-link-extractor.namespace}"/>
+                </bean>
+            </list>
+        </property>
+    </bean>
+    <bean id="executor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor"
+        destroy-method="destroy">
+        <property name="corePoolSize" value="3"/>
+        <property name="maxPoolSize" value="3"/>
+        <property name="queueCapacity" value="0"/>
+    </bean>
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations" value="file:wiki-extractor.properties"/>
+    </bean>
+</beans>

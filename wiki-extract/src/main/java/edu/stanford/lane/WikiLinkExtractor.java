@@ -2,12 +2,16 @@ package edu.stanford.lane;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -34,7 +38,7 @@ import org.xml.sax.SAXException;
 /**
  * @author ryanmax
  */
-public class WikiExtractor implements Extractor {
+public class WikiLinkExtractor implements Extractor {
 
     private static final String BASE_URL = ".wikipedia.org/w/api.php?action=query&list=exturlusage&format=xml&euprop=ids%7Ctitle%7Curl&eulimit=5000";
 
@@ -59,11 +63,13 @@ public class WikiExtractor implements Extractor {
 
     private String path;
 
+    private Set<String> projectMedicinePages;
+
     private String urlFilter;
 
     private XPath xpath;
 
-    public WikiExtractor(final String euquery, final String urlFilter, final String outputPath, final String languages,
+    public WikiLinkExtractor(final String euquery, final String urlFilter, final String outputPath, final String languages,
             final String namespace) {
         this.euquery = euquery;
         this.urlFilter = urlFilter;
@@ -85,13 +91,28 @@ public class WikiExtractor implements Extractor {
             }
         }
         this.path = outputPath + "/" + date;
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("proj-med-pages.obj"))) {
+            this.projectMedicinePages = (Set<String>) ois.readObject();
+        } catch (IOException e) {
+            this.log.error("missing proj-med-pages.obj file ... can't determine wikiProjectMedicine status", e);
+            this.projectMedicinePages = new HashSet<>();
+        } catch (ClassNotFoundException e) {
+            throw new WikiExtractException(e);
+        }
     }
 
     @Override
     public void extract() {
+        this.log.info(" - start - link extraction");
+        this.log.info("euquery: " + this.euquery);
+        this.log.info("path: " + this.path);
+        this.log.info("urlFilter: " + this.urlFilter);
+        this.log.info("namespace: " + this.namespace);
+        this.log.info("languages: " + this.languages);
         for (String lang : this.languages) {
             extract(lang);
         }
+        this.log.info(" - end - link extraction");
     }
 
     public void extract(final String lang) {
@@ -143,7 +164,7 @@ public class WikiExtractor implements Extractor {
         HttpGet method = new HttpGet(url);
         method.setConfig(HTTP_CONFIG);
         try {
-            res = WikiExtractor.httpClient.execute(method);
+            res = WikiLinkExtractor.httpClient.execute(method);
             if (res.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 htmlContent = EntityUtils.toString(res.getEntity());
             }
@@ -156,12 +177,15 @@ public class WikiExtractor implements Extractor {
 
     private void maybeWriteLine(final String lang, final Element el, final FileOutputStream fos) throws IOException {
         String url = el.getAttribute("url");
+        String ns = el.getAttribute("ns");
+        String title = el.getAttribute("title");
         if (!this.filter || url.contains(this.urlFilter)) {
             StringBuilder sb = new StringBuilder();
             sb.append(lang);
             sb.append("\t" + el.getAttribute("pageid"));
-            sb.append("\t" + el.getAttribute("ns"));
-            sb.append("\t" + el.getAttribute("title"));
+            sb.append("\t" + ns);
+            sb.append("\t" + this.projectMedicinePages.contains(ns + ":::" + title));
+            sb.append("\t" + title);
             sb.append("\t" + url);
             sb.append("\n");
             fos.write(sb.toString().getBytes());
