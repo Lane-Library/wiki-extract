@@ -81,7 +81,7 @@ public class WikiPageExtractor implements Extractor {
         for (String cat : this.categories) {
             extract(cat.trim());
         }
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("proj-med-pages.obj"))) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("pages.obj"))) {
             oos.writeObject(this.pages);
         } catch (IOException e) {
             this.log.error(e.getMessage(), e);

@@ -91,19 +91,19 @@ public class WikiLinkExtractor implements Extractor {
             }
         }
         this.path = outputPath + "/" + date;
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("proj-med-pages.obj"))) {
-            this.projectMedicinePages = (Set<String>) ois.readObject();
-        } catch (IOException e) {
-            this.log.error("missing proj-med-pages.obj file ... can't determine wikiProjectMedicine status", e);
-            this.projectMedicinePages = new HashSet<>();
-        } catch (ClassNotFoundException e) {
-            throw new WikiExtractException(e);
-        }
     }
 
     @Override
     public void extract() {
         this.log.info(" - start - link extraction");
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("pages.obj"))) {
+            this.projectMedicinePages = (Set<String>) ois.readObject();
+        } catch (IOException e) {
+            this.log.error("missing pages.obj file ... can't determine wikiProjectMedicine status", e);
+            this.projectMedicinePages = new HashSet<>();
+        } catch (ClassNotFoundException e) {
+            throw new WikiExtractException(e);
+        }
         this.log.info("euquery: " + this.euquery);
         this.log.info("path: " + this.path);
         this.log.info("urlFilter: " + this.urlFilter);
