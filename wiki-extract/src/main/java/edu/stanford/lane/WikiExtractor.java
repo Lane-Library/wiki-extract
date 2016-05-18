@@ -36,7 +36,7 @@ import org.xml.sax.SAXException;
  */
 public class WikiExtractor implements Extractor {
 
-    private static final String BASE_URL = ".wikipedia.org/w/api.php?action=query&list=exturlusage&format=xml&euprop=ids%7Ctitle%7Curl&eulimit=500&eunamespace=0";
+    private static final String BASE_URL = ".wikipedia.org/w/api.php?action=query&list=exturlusage&format=xml&euprop=ids%7Ctitle%7Curl&eulimit=500";
 
     private static final RequestConfig HTTP_CONFIG = RequestConfig.custom().setCookieSpec(CookieSpecs.IGNORE_COOKIES)
             .build();
@@ -51,14 +51,18 @@ public class WikiExtractor implements Extractor {
 
     private Logger log = LoggerFactory.getLogger(getClass());
 
+    private String namespace;
+
     private String path;
 
     private String urlPattern;
 
     private XPath xpath;
 
-    public WikiExtractor(final String urlPattern, final String outputPath, final String languages) {
+    public WikiExtractor(final String urlPattern, final String outputPath, final String languages,
+            final String namespace) {
         this.urlPattern = urlPattern;
+        this.namespace = namespace;
         for (String l : languages.split(",")) {
             this.languages.add(l);
         }
@@ -83,6 +87,7 @@ public class WikiExtractor implements Extractor {
     }
 
     public void extract(final String lang) {
+        String query = PROTOCOL + lang + BASE_URL + "&euquery=" + this.urlPattern + "&eunamespace=" + this.namespace;
         File directory = new File(this.path + "/" + lang);
         if (!directory.exists()) {
             directory.mkdir();
@@ -94,16 +99,8 @@ public class WikiExtractor implements Extractor {
             outFos = new FileOutputStream(outFile);
             boolean more = true;
             int offset = 0;
-            int i = 0;
             while (more) {
-                String xmlContent = getContent(
-                        PROTOCOL + lang + BASE_URL + "&euquery=" + this.urlPattern + "&euoffset=" + offset);
-                File f = new File(directory.getAbsolutePath() + "/" + ++i + ".xml");
-                FileOutputStream fos = null;
-                f.createNewFile();
-                fos = new FileOutputStream(f);
-                fos.write(xmlContent.getBytes());
-                fos.close();
+                String xmlContent = getContent(query + offset);
                 Document doc;
                 NodeList euNodes = null;
                 try {
@@ -134,6 +131,7 @@ public class WikiExtractor implements Extractor {
             }
             outFos.close();
         } catch (IOException e) {
+            this.log.error(e.getMessage(), e);
             throw new WikiExtractException(e);
         }
     }
@@ -149,6 +147,7 @@ public class WikiExtractor implements Extractor {
                 htmlContent = EntityUtils.toString(res.getEntity());
             }
         } catch (Exception e) {
+            this.log.error(e.getMessage(), e);
             method.abort();
         }
         return htmlContent;

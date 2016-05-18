@@ -9,6 +9,7 @@
 					<constructor-arg name="urlPattern" value="${wiki-extractor.urlPattern}"/>
 					<constructor-arg name="outputPath" value="${wiki-extractor.outputPath}"/>
 					<constructor-arg name="languages" value="${wiki-extractor.languages}"/>
+					<constructor-arg name="namespace" value="${wiki-extractor.namespace}"/>
 				</bean>
 			</list>
 		</property>
