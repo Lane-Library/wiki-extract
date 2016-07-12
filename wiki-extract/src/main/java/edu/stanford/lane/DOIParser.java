@@ -22,9 +22,20 @@ public final class DOIParser {
             }
         }
         s = s.replaceFirst(".*\\.org/", "");
-        if (s.startsWith("10.")) {
-            return s.trim();
+        s = s.trim();
+        if (s.startsWith("10.") || isShortDoi(s)) {
+            return s;
         }
         return "";
+    }
+
+    /**
+     * http://www.doi.org/doi_handbook/2_Numbering.html#2.10
+     *
+     * @param doi
+     * @return true if DOI appears to be shortened (letters and numbers but not just numbers)
+     */
+    private static boolean isShortDoi(final String doi) {
+        return doi.matches("\\w+") && !doi.matches("\\d+");
     }
 }

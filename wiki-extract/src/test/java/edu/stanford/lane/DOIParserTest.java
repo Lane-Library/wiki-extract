@@ -20,5 +20,9 @@ public class DOIParserTest {
                 .parse("//dx.doi.org/10.1002%2F(SICI)1096-8644(199703)102:3%5C%253C301::AID-AJPA1%5C%253E3.0.CO;2-Y"));
         assertEquals("10.1002/pros.1131 [pii]", DOIParser.parse("//dx.doi.org/10.1002%2Fpros.1131+%5Bpii%5D"));
         assertEquals("", DOIParser.parse("http://www.doi.org/news/DOINewsApr11.html#1"));
+        assertEquals("3d2", DOIParser.parse("http://doi.org/3d2"));
+        assertEquals("bptps5", DOIParser.parse("http://doi.org/bptps5"));
+        assertEquals("", DOIParser.parse("http://doi.org/10"));
+        assertEquals("", DOIParser.parse("http://doi.org/012345678"));
     }
 }
