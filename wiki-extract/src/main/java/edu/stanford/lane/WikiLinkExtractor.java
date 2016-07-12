@@ -69,8 +69,8 @@ public class WikiLinkExtractor implements Extractor {
 
     private XPath xpath;
 
-    public WikiLinkExtractor(final String euquery, final String urlFilter, final String outputPath, final String languages,
-            final String namespace) {
+    public WikiLinkExtractor(final String euquery, final String urlFilter, final String outputPath,
+            final String languages, final String namespace) {
         this.euquery = euquery;
         this.urlFilter = urlFilter;
         if (null == this.urlFilter || this.urlFilter.isEmpty()) {
@@ -187,6 +187,7 @@ public class WikiLinkExtractor implements Extractor {
             sb.append("\t" + this.projectMedicinePages.contains(ns + ":::" + title));
             sb.append("\t" + title);
             sb.append("\t" + url);
+            sb.append("\t" + DOIParser.parse(url));
             sb.append("\n");
             fos.write(sb.toString().getBytes());
         }
