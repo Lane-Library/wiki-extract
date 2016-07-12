@@ -24,5 +24,6 @@ public class DOIParserTest {
         assertEquals("bptps5", DOIParser.parse("http://doi.org/bptps5"));
         assertEquals("", DOIParser.parse("http://doi.org/10"));
         assertEquals("", DOIParser.parse("http://doi.org/012345678"));
+        assertEquals("10.1016/S0007-0785(96)80056-1", DOIParser.parse("http://doi.org/doi:10.1016/S0007-0785(96)80056-1"));
     }
 }

@@ -23,6 +23,10 @@ public final class DOIParser {
         }
         s = s.replaceFirst(".*\\.org/", "");
         s = s.trim();
+        // http://www.doi.org/doi_handbook/2_Numbering.html#2.6.3
+        if (s.startsWith("doi:")) {
+            s = s.substring(4);
+        }
         if (s.startsWith("10.") || isShortDoi(s)) {
             return s;
         }
