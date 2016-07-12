@@ -6,7 +6,7 @@ import java.net.URLDecoder;
 public final class DOIParser {
 
     /**
-     * Extract a DOI from a link; assumes link's hostname will end in .org and DOI's begin with 10.
+     * Extract a DOI from a link; assumes link's hostname will end in .org and DOI's begin with 10. or looks "shortened"
      *
      * @param link
      *            String containing a DOI
