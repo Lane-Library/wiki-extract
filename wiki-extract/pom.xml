@@ -3,7 +3,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
   <artifactId>wiki-extract</artifactId>
-  <version>0.05-SNAPSHOT</version>
+  <version>0.06-SNAPSHOT</version>
   <name>Wiki Extract</name>
   <description>extract data from wikipedia.org for a research project with John Willinksy and Lauren Maggio</description>
   <parent>
