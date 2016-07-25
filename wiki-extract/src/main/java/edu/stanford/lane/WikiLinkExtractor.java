@@ -40,6 +40,10 @@ import org.xml.sax.SAXException;
  */
 public class WikiLinkExtractor implements Extractor {
 
+    private static enum Category {
+        CAT_1_ONLY_PROJECT_MED, CAT_2_ONLY_NON_PROJECT_MED, CAT_3_BOTH_PROJECT_MED_AND_NON_PROJECT_MED, UNKOWN
+    }
+
     private static final String BASE_URL = ".wikipedia.org/w/api.php?action=query&list=exturlusage&format=xml&euprop=ids%7Ctitle%7Curl&eulimit=5000";
 
     private static final RequestConfig HTTP_CONFIG = RequestConfig.custom().setCookieSpec(CookieSpecs.IGNORE_COOKIES)
@@ -48,6 +52,8 @@ public class WikiLinkExtractor implements Extractor {
     private static final HttpClient httpClient = HttpClients.createDefault();
 
     private static final String PROTOCOL = "https://";
+
+    private Set<String> dois = new HashSet<>();
 
     private String euquery;
 
@@ -61,7 +67,11 @@ public class WikiLinkExtractor implements Extractor {
 
     private String namespace;
 
+    private Set<String> nonProjectMedicineDois = new HashSet<>();
+
     private String path;
+
+    private Set<String> projectMedicineDois = new HashSet<>();
 
     private Set<String> projectMedicinePages;
 
@@ -152,6 +162,7 @@ public class WikiLinkExtractor implements Extractor {
                 }
             }
             outFos.close();
+            writeDoiOutput(directory.getAbsolutePath() + "/unique-dois.txt");
         } catch (IOException e) {
             this.log.error(e.getMessage(), e);
             throw new WikiExtractException(e);
@@ -180,16 +191,48 @@ public class WikiLinkExtractor implements Extractor {
         String ns = el.getAttribute("ns");
         String title = el.getAttribute("title");
         if (!this.filter || url.contains(this.urlFilter)) {
+            boolean isProjectMed = this.projectMedicinePages.contains(ns + ":::" + title);
+            String doi = DOIParser.parse(url);
             StringBuilder sb = new StringBuilder();
             sb.append(lang);
             sb.append("\t" + el.getAttribute("pageid"));
             sb.append("\t" + ns);
-            sb.append("\t" + this.projectMedicinePages.contains(ns + ":::" + title));
+            sb.append("\t" + isProjectMed);
             sb.append("\t" + title);
             sb.append("\t" + url);
-            sb.append("\t" + DOIParser.parse(url));
+            sb.append("\t" + doi);
             sb.append("\n");
             fos.write(sb.toString().getBytes());
+            if (!doi.isEmpty()) {
+                this.dois.add(doi);
+                if (isProjectMed) {
+                    this.projectMedicineDois.add(doi);
+                } else {
+                    this.nonProjectMedicineDois.add(doi);
+                }
+            }
         }
+    }
+
+    private void writeDoiOutput(final String path) throws IOException {
+        File doiOutFile = new File(path);
+        doiOutFile.createNewFile();
+        FileOutputStream doiOutFos = new FileOutputStream(doiOutFile);
+        for (String doi : this.dois) {
+            Category cat = Category.UNKOWN;
+            if (this.nonProjectMedicineDois.contains(doi) && this.projectMedicineDois.contains(doi)) {
+                cat = Category.CAT_3_BOTH_PROJECT_MED_AND_NON_PROJECT_MED;
+            } else if (this.nonProjectMedicineDois.contains(doi)) {
+                cat = Category.CAT_2_ONLY_NON_PROJECT_MED;
+            } else if (this.projectMedicineDois.contains(doi)) {
+                cat = Category.CAT_1_ONLY_PROJECT_MED;
+            }
+            StringBuilder sb = new StringBuilder();
+            sb.append(doi);
+            sb.append("\t" + cat);
+            sb.append("\n");
+            doiOutFos.write(sb.toString().getBytes());
+        }
+        doiOutFos.close();
     }
 }
