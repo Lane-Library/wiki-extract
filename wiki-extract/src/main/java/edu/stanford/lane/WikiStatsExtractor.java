@@ -63,7 +63,7 @@ public class WikiStatsExtractor implements Extractor {
         }
     }
 
-    public void extract(final File input) {
+    private void extract(final File input) {
         try (BufferedReader br = new BufferedReader(new FileReader(input));
                 FileWriter fw = new FileWriter(this.inputFile + "-out.txt", true);) {
             String line;
@@ -103,6 +103,8 @@ public class WikiStatsExtractor implements Extractor {
         } catch (Exception e) {
             this.log.error(e.getMessage(), e);
             method.abort();
+        } finally {
+            method.releaseConnection();
         }
         return htmlContent;
     }
