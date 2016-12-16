@@ -154,6 +154,8 @@ public class WikiPageExtractor implements Extractor {
         } catch (Exception e) {
             this.log.error(e.getMessage(), e);
             method.abort();
+        } finally {
+            method.releaseConnection();
         }
         return htmlContent;
     }
