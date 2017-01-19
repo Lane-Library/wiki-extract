@@ -40,7 +40,7 @@ import org.xml.sax.SAXException;
  */
 public class WikiLinkExtractor implements Extractor {
 
-    private static enum Category {
+    protected static enum Category {
         CAT_1_ONLY_PROJECT_MED, CAT_2_ONLY_NON_PROJECT_MED, CAT_3_BOTH_PROJECT_MED_AND_NON_PROJECT_MED, UNKOWN
     }
 
