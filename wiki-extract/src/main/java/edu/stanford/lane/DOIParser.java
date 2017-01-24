@@ -1,39 +1,41 @@
 package edu.stanford.lane;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-public final class DOIParser {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-    /**
-     * Extract a DOI from a link; assumes link's hostname will end in .org and DOI's begin with 10. or looks "shortened"
-     *
-     * @param link
-     *            String containing a DOI
-     * @return DOI or empty if no DOI found
-     */
-    public static String parse(final String link) {
-        String parsed = link;
-        if (null != parsed) {
-            try {
-                parsed = URLDecoder.decode(parsed, "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                // won't happen
-            }
-        }
-        parsed = removePrefixes(parsed);
-        if (isShortDoi(parsed)) {
-            parsed = resolveShortenedDoi(parsed);
-        }
-        parsed = parsed.toLowerCase().trim();
-        if (parsed.startsWith("10.")) {
-            return parsed;
-        }
-        return "";
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+public class DOIParser {
+
+    private static ObjectMapper mapper = new ObjectMapper();
+
+    private static final String OBJECT_STORE = "parsed-dois.obj";
+
+    private static final int TEN_SECS = 1000 * 10;
+
+    private Logger log = LoggerFactory.getLogger(getClass());
+
+    private Map<String, List<String>> parsedDois;
+
+    public DOIParser() {
+        // empty
     }
 
     /**
@@ -57,9 +59,9 @@ public final class DOIParser {
     private static String resolveShortenedDoi(final String doi) {
         URL url = null;
         URLConnection connection = null;
-        String resolvedDoi = removePrefixes(doi);
+        String resolvedDoi = doi;
         try {
-            url = new URL("http://doi.org/" + doi);
+            url = new URL("http://doi.org/" + resolvedDoi);
             connection = url.openConnection();
             ((HttpURLConnection) connection).setInstanceFollowRedirects(false);
         } catch (IOException e) {
@@ -70,5 +72,127 @@ public final class DOIParser {
             resolvedDoi = location;
         }
         return removePrefixes(resolvedDoi);
+    }
+
+    /**
+     * Extract a DOI from a link; assumes link's hostname will end in .org and DOI's begin with 10. or looks "shortened"
+     *
+     * @param link
+     *            String containing a DOI
+     * @return DOI or empty if no DOI found
+     */
+    public List<String> parse(final String link) {
+        cacheMaintenance();
+        if (this.parsedDois.containsKey(link)) {
+            return this.parsedDois.get(link);
+        }
+        List<String> dois = new ArrayList<>();
+        String parsed = link;
+        if (null != parsed) {
+            parsed = removePrefixes(link);
+            String json = fetchDoiData(parsed);
+            String handle = jsonToCannonicalDoi(json);
+            if (null != handle && !isShortDoi(handle)) {
+                dois.add(handle);
+                dois.addAll(jsonToAlias(json));
+            } else {
+                dois.add(resolveShortenedDoi(parsed));
+            }
+        }
+        List<String> normalized = new ArrayList<>();
+        for (String doi : dois) {
+            if (null != doi && doi.startsWith("10.")) {
+                doi = doi.toLowerCase().trim();
+                normalized.add(doi);
+            }
+        }
+        this.parsedDois.put(link, normalized);
+        return this.parsedDois.get(link);
+    }
+
+    private void cacheMaintenance() {
+        File objFile = new File(OBJECT_STORE);
+        if (null == this.parsedDois) {
+            if (!objFile.exists()) {
+                this.parsedDois = new HashMap<>();
+            } else {
+                try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(objFile))) {
+                    this.parsedDois = (Map<String, List<String>>) ois.readObject();
+                } catch (IOException | ClassNotFoundException e) {
+                    this.log.error("can't load parsed DOI object file", e);
+                }
+            }
+        } else if (this.parsedDois.size() % 1000 == 0
+                && objFile.lastModified() < System.currentTimeMillis() - TEN_SECS) {
+            this.log.debug("writing new parsed DOI object file with # of dois: " + this.parsedDois.size());
+            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(OBJECT_STORE))) {
+                oos.writeObject(this.parsedDois);
+            } catch (IOException e) {
+                this.log.error("can't write parsed DOI object file", e);
+            }
+        }
+    }
+
+    private String fetchDoiData(final String doi) {
+        StringBuilder json = new StringBuilder();
+        URL url = null;
+        try {
+            url = new URL("http://doi.org/api/handles/" + doi);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            InputStream is = null;
+            if (200 == connection.getResponseCode()) {
+                is = connection.getInputStream();
+            } else {
+                is = connection.getErrorStream();
+            }
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
+                String inputLine;
+                while ((inputLine = br.readLine()) != null) {
+                    json.append(inputLine);
+                }
+            }
+        } catch (IOException e) {
+            this.log.info("can't fetch data for doi: " + url);
+        }
+        return json.toString();
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<String> jsonToAlias(final String json) {
+        List<String> aliases = new ArrayList<>();
+        if (null != json && !json.isEmpty()) {
+            Map<String, Object> data = null;
+            try {
+                data = mapper.readValue(json, Map.class);
+            } catch (IOException e) {
+                this.log.error("can't fetch aliases from json : " + json, e);
+            }
+            if (data.containsKey("values")) {
+                List<Map<String, Object>> list = (List<Map<String, Object>>) data.get("values");
+                for (Map<String, Object> map : list) {
+                    String type = (String) map.get("type");
+                    if ("HS_ALIAS".equalsIgnoreCase(type)) {
+                        Map<String, String> dataMap = (Map<String, String>) map.get("data");
+                        aliases.add(dataMap.get("value"));
+                    }
+                }
+            }
+        }
+        return aliases;
+    }
+
+    @SuppressWarnings("unchecked")
+    private String jsonToCannonicalDoi(final String json) {
+        String handle = null;
+        if (null != json && !json.isEmpty()) {
+            Map<String, String> data = null;
+            try {
+                data = mapper.readValue(json, Map.class);
+            } catch (IOException e) {
+                this.log.error("can't fetch data from json : " + json, e);
+            }
+            handle = data.get("handle");
+        }
+        return handle;
     }
 }

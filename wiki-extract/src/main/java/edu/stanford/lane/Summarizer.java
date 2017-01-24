@@ -11,12 +11,16 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.stanford.lane.WikiLinkExtractor.Category;
-
 /**
  * @author ryanmax
  */
 public class Summarizer {
+
+    protected static enum Category {
+        CAT_1_ONLY_PROJECT_MED, CAT_2_ONLY_NON_PROJECT_MED, CAT_3_BOTH_PROJECT_MED_AND_NON_PROJECT_MED, UNKOWN
+    }
+
+    private DOIParser doiParser = new DOIParser();
 
     private Set<String> dois = new HashSet<>();
 
@@ -40,7 +44,7 @@ public class Summarizer {
      * isProjectMedicinePage
      * page_title
      * link_to_doi.org
-     * DOI
+     * DOI (not needed ... will be parsed from link field)
      * </pre>
      */
     public Summarizer(final String[] inputFiles) {
@@ -64,18 +68,24 @@ public class Summarizer {
     private void extract(final File input) {
         try (BufferedReader br = new BufferedReader(new FileReader(input));) {
             String line;
+            int i = 0;
             while ((line = br.readLine()) != null) {
                 String[] fields = line.split("\t");
                 String isProjectMedPage = fields[3];
-                String doi = fields[5];
-                doi = DOIParser.parse(doi);
-                if (null != doi && !doi.isEmpty()) {
-                    this.dois.add(doi);
+                String link = fields[5];
+                for (String doi : this.doiParser.parse(link)) {
+                    if (null != doi && !doi.isEmpty()) {
+                        this.dois.add(doi);
+                    }
+                    if ("true".equalsIgnoreCase(isProjectMedPage)) {
+                        this.projectMedicineDois.add(doi);
+                    } else {
+                        this.nonProjectMedicineDois.add(doi);
+                    }
                 }
-                if ("true".equalsIgnoreCase(isProjectMedPage)) {
-                    this.projectMedicineDois.add(doi);
-                } else {
-                    this.nonProjectMedicineDois.add(doi);
+                i++;
+                if (i % 100000 == 0) {
+                    this.log.debug("line " + i + " of file: " + input);
                 }
             }
         } catch (IOException e) {
