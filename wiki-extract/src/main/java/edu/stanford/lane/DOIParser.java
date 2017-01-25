@@ -69,9 +69,9 @@ public class DOIParser {
         }
         String location = connection.getHeaderField("Location");
         if (null != location) {
-            resolvedDoi = location;
+            resolvedDoi = removePrefixes(location);
         }
-        return removePrefixes(resolvedDoi);
+        return resolvedDoi;
     }
 
     /**
@@ -87,16 +87,16 @@ public class DOIParser {
             return this.parsedDois.get(link);
         }
         List<String> dois = new ArrayList<>();
-        String parsed = link;
-        if (null != parsed) {
-            parsed = removePrefixes(link);
-            String json = fetchDoiData(parsed);
+        if (null != link) {
+            String json = fetchDoiData(removePrefixes(link));
             String handle = jsonToCannonicalDoi(json);
-            if (null != handle && !isShortDoi(handle)) {
-                dois.add(handle);
-                dois.addAll(jsonToAlias(json));
-            } else {
-                dois.add(resolveShortenedDoi(parsed));
+            if (null != handle) {
+                if (!isShortDoi(handle)) {
+                    dois.add(handle);
+                    dois.addAll(jsonToAlias(json));
+                } else {
+                    dois.add(resolveShortenedDoi(handle));
+                }
             }
         }
         List<String> normalized = new ArrayList<>();
