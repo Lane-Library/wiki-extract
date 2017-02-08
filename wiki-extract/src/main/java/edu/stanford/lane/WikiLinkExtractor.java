@@ -40,6 +40,7 @@ import org.xml.sax.SAXException;
  */
 public class WikiLinkExtractor implements Extractor {
 
+    // as is, query fetches http and protocol-less links; add &euprotocol=https to query for https and protocol-less
     private static final String BASE_URL = ".wikipedia.org/w/api.php?action=query&list=exturlusage&format=xml&euprop=ids%7Ctitle%7Curl&eulimit=5000";
 
     private static final RequestConfig HTTP_CONFIG = RequestConfig.custom().setCookieSpec(CookieSpecs.IGNORE_COOKIES)
