@@ -48,7 +48,7 @@ public class DOIParserTest {
         assertEquals("10.1016/s0007-0785(96)80056-1", this.parser.parse("http://doi.org/doi:10.1016/S0007-0785(96)80056-1").get(0));
         assertEquals("10.1016/s0007-0785(96)80056-1", this.parser.parse("http://doi.org/DOI:10.1016/S0007-0785(96)80056-1").get(0));
         assertEquals("10.1016/s0007-0785(96)80056-1", this.parser.parse("http://DOI.ORG/doi:10.1016/S0007-0785(96)80056-1").get(0));
-        // space after doi: ... only 26 like this found on 2016-08-31
+        // space after doi: ... only 26 like this found in all 2016-08 data; manual verification of these 26 and not one would change our summary statistics
         assertEquals("10.1016/j.parkreldis.2010.02.011", this.parser.parse("http://dx.doi.org/doi: 10.1016/j.parkreldis.2010.02.011").get(0));
         // aliases
         assertEquals("10.1007/bf00140587", this.parser.parse("10.1007/bf00140587").get(0));
