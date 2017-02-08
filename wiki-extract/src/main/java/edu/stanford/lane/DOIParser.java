@@ -52,7 +52,7 @@ public class DOIParser {
         String s = doi;
         s = s.replaceFirst("(?i).*\\.org/", "");
         // http://www.doi.org/doi_handbook/2_Numbering.html#2.6.3
-        s = s.replaceFirst("(?i)^doi:", "");
+        s = s.replaceFirst("(?i)^doi:\\s?", "");
         return s;
     }
 
