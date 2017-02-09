@@ -82,10 +82,10 @@ public class DOIParser {
      * @return DOI or empty if no DOI found
      */
     public List<String> parse(final String link) {
-        cacheMaintenance();
-        if (this.parsedDois.containsKey(link)) {
+        if (null != this.parsedDois && this.parsedDois.containsKey(link)) {
             return this.parsedDois.get(link);
         }
+        cacheMaintenance();
         List<String> dois = new ArrayList<>();
         if (null != link) {
             String json = fetchDoiData(removePrefixes(link));
