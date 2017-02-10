@@ -1,4 +1,4 @@
-package edu.stanford.lane;
+package edu.stanford.lane.report;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -10,6 +10,8 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import edu.stanford.lane.DOIParser;
 
 /**
  * @author ryanmax

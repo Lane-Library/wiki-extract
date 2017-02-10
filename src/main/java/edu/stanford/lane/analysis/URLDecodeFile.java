@@ -1,4 +1,4 @@
-package edu.stanford.lane;
+package edu.stanford.lane.analysis;
 
 import java.io.BufferedReader;
 import java.io.File;

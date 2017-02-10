@@ -1,4 +1,4 @@
-package edu.stanford.lane;
+package edu.stanford.lane.report;
 
 import java.util.HashMap;
 

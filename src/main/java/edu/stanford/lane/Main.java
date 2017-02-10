@@ -6,6 +6,8 @@ import java.util.List;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import edu.stanford.lane.extraction.Extractor;
+
 public class Main {
 
     private List<Extractor> extractors;

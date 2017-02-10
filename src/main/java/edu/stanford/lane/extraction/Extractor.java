@@ -1,4 +1,4 @@
-package edu.stanford.lane;
+package edu.stanford.lane.extraction;
 
 public interface Extractor {
 

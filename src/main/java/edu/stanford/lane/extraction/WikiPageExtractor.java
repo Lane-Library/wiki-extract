@@ -1,4 +1,4 @@
-package edu.stanford.lane;
+package edu.stanford.lane.extraction;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -35,6 +35,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import edu.stanford.lane.WikiExtractException;
 
 /**
  * @author ryanmax

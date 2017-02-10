@@ -5,7 +5,7 @@
 	<bean id="main" class="edu.stanford.lane.Main">
 		<property name="extractors">
 			<list>
-				<bean class="edu.stanford.lane.WikiStatsExtractor">
+				<bean class="edu.stanford.lane.extraction.WikiStatsExtractor">
 					<constructor-arg name="inputFile" value="${wiki-stats-extractor.inputFile}"/>
 					<constructor-arg name="startDate" value="${wiki-stats-extractor.startDate}"/>
 					<constructor-arg name="endDate" value="${wiki-stats-extractor.endDate}"/>
