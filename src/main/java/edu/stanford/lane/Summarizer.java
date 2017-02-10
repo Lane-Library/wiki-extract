@@ -26,9 +26,11 @@ public class Summarizer {
 
     private Logger log = LoggerFactory.getLogger(getClass());
 
-    private Set<String> nonProjectMedicineDois = new HashSet<>();
+    private IncrementingHashMap mapNonProjectMedicineDois = new IncrementingHashMap();
 
-    private Set<String> projectMedicineDois = new HashSet<>();
+    private IncrementingHashMap mapProjectMedicineDois = new IncrementingHashMap();
+
+    private Set<String> uniqueEntries = new HashSet<>();
 
     /**
      * summarize wiki extract data files; re-parse DOI from link_to_doi.org field because parsing changed after data was
@@ -54,6 +56,21 @@ public class Summarizer {
                 extract(in);
             }
         }
+        for (String entry : this.uniqueEntries) {
+            String[] fields = entry.split("\t");
+            String isProjectMedPage = fields[3];
+            String link = fields[5];
+            for (String doi : this.doiParser.parse(link)) {
+                if (null != doi && !doi.isEmpty()) {
+                    this.dois.add(doi);
+                }
+                if ("true".equalsIgnoreCase(isProjectMedPage)) {
+                    this.mapProjectMedicineDois.add(doi);
+                } else {
+                    this.mapNonProjectMedicineDois.add(doi);
+                }
+            }
+        }
         try {
             writeDoiOutput("summary.txt");
         } catch (IOException e) {
@@ -68,25 +85,8 @@ public class Summarizer {
     private void extract(final File input) {
         try (BufferedReader br = new BufferedReader(new FileReader(input));) {
             String line;
-            int i = 0;
             while ((line = br.readLine()) != null) {
-                String[] fields = line.split("\t");
-                String isProjectMedPage = fields[3];
-                String link = fields[5];
-                for (String doi : this.doiParser.parse(link)) {
-                    if (null != doi && !doi.isEmpty()) {
-                        this.dois.add(doi);
-                    }
-                    if ("true".equalsIgnoreCase(isProjectMedPage)) {
-                        this.projectMedicineDois.add(doi);
-                    } else {
-                        this.nonProjectMedicineDois.add(doi);
-                    }
-                }
-                i++;
-                if (i % 100000 == 0) {
-                    this.log.debug("line " + i + " of file: " + input);
-                }
+                this.uniqueEntries.add(line);
             }
         } catch (IOException e) {
             this.log.error("can't read file", e);
@@ -99,16 +99,22 @@ public class Summarizer {
         FileOutputStream doiOutFos = new FileOutputStream(doiOutFile);
         for (String doi : this.dois) {
             Category cat = Category.UNKOWN;
-            if (this.nonProjectMedicineDois.contains(doi) && this.projectMedicineDois.contains(doi)) {
+            int count = 0;
+            if (this.mapNonProjectMedicineDois.containsKey(doi) && this.mapProjectMedicineDois.containsKey(doi)) {
                 cat = Category.CAT_3_BOTH_PROJECT_MED_AND_NON_PROJECT_MED;
-            } else if (this.nonProjectMedicineDois.contains(doi)) {
+                count = this.mapNonProjectMedicineDois.get(doi).intValue()
+                        + this.mapProjectMedicineDois.get(doi).intValue();
+            } else if (this.mapNonProjectMedicineDois.containsKey(doi)) {
                 cat = Category.CAT_2_ONLY_NON_PROJECT_MED;
-            } else if (this.projectMedicineDois.contains(doi)) {
+                count = this.mapNonProjectMedicineDois.get(doi).intValue();
+            } else if (this.mapProjectMedicineDois.containsKey(doi)) {
                 cat = Category.CAT_1_ONLY_PROJECT_MED;
+                count = this.mapProjectMedicineDois.get(doi).intValue();
             }
             StringBuilder sb = new StringBuilder();
             sb.append(doi);
             sb.append("\t" + cat);
+            sb.append("\t" + count);
             sb.append("\n");
             doiOutFos.write(sb.toString().getBytes());
         }
