@@ -20,14 +20,6 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.CookieSpecs;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -40,15 +32,10 @@ import edu.stanford.lane.WikiExtractException;
 /**
  * @author ryanmax
  */
-public class WikiLinkExtractor implements Extractor {
+public class WikiLinkExtractor extends AbstractExtractor implements Extractor {
 
     // as is, query fetches http and protocol-less links; add &euprotocol=https to query for https and protocol-less
     private static final String BASE_URL = ".wikipedia.org/w/api.php?action=query&list=exturlusage&format=xml&euprop=ids%7Ctitle%7Curl&eulimit=5000";
-
-    private static final RequestConfig HTTP_CONFIG = RequestConfig.custom().setCookieSpec(CookieSpecs.IGNORE_COOKIES)
-            .build();
-
-    private static final HttpClient httpClient = HttpClients.createDefault();
 
     private static final String PROTOCOL = "https://";
 
@@ -159,25 +146,6 @@ public class WikiLinkExtractor implements Extractor {
             this.log.error(e.getMessage(), e);
             throw new WikiExtractException(e);
         }
-    }
-
-    private String getContent(final String url) {
-        String htmlContent = null;
-        HttpResponse res = null;
-        HttpGet method = new HttpGet(url);
-        method.setConfig(HTTP_CONFIG);
-        try {
-            res = WikiLinkExtractor.httpClient.execute(method);
-            if (res.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                htmlContent = EntityUtils.toString(res.getEntity());
-            }
-        } catch (Exception e) {
-            this.log.error(e.getMessage(), e);
-            method.abort();
-        } finally {
-            method.releaseConnection();
-        }
-        return htmlContent;
     }
 
     private void maybeWriteLine(final String lang, final Element el, final FileOutputStream fos) throws IOException {

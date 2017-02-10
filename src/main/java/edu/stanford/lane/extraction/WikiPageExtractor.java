@@ -21,14 +21,6 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.CookieSpecs;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -41,14 +33,9 @@ import edu.stanford.lane.WikiExtractException;
 /**
  * @author ryanmax
  */
-public class WikiPageExtractor implements Extractor {
+public class WikiPageExtractor extends AbstractExtractor implements Extractor {
 
     private static final String BASE_URL = "https://en.wikipedia.org/w/api.php?action=query&format=xml&list=categorymembers&cmlimit=5000&cmtitle=";
-
-    private static final RequestConfig HTTP_CONFIG = RequestConfig.custom().setCookieSpec(CookieSpecs.IGNORE_COOKIES)
-            .build();
-
-    private static final HttpClient httpClient = HttpClients.createDefault();
 
     private List<String> categories = new ArrayList<>();
 
@@ -141,25 +128,6 @@ public class WikiPageExtractor implements Extractor {
             this.log.error(e.getMessage(), e);
             throw new WikiExtractException(e);
         }
-    }
-
-    private String getContent(final String url) {
-        String htmlContent = null;
-        HttpResponse res = null;
-        HttpGet method = new HttpGet(url);
-        method.setConfig(HTTP_CONFIG);
-        try {
-            res = WikiPageExtractor.httpClient.execute(method);
-            if (res.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                htmlContent = EntityUtils.toString(res.getEntity());
-            }
-        } catch (Exception e) {
-            this.log.error(e.getMessage(), e);
-            method.abort();
-        } finally {
-            method.releaseConnection();
-        }
-        return htmlContent;
     }
 
     private void writeLine(final FileWriter fw, final String cat, final String ns, final String title)
