@@ -22,8 +22,7 @@ public class URLDecodeFile {
     private Logger log = LoggerFactory.getLogger(getClass());
 
     /*
-     * used this to URL decode DOIs from CrossRef (Joe Wass)
-     * assumes tab-delimited input
+     * used this to URL decode DOIs from CrossRef (Joe Wass) assumes tab-delimited input
      */
     public URLDecodeFile(final String inputFile, final int fieldToEncode) {
         this.inputFile = inputFile;
@@ -44,7 +43,11 @@ public class URLDecodeFile {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] fields = line.split("\t");
-                fields[this.fieldToEncode] = URLDecoder.decode(fields[this.fieldToEncode], "UTF-8");
+                try {
+                    fields[this.fieldToEncode] = URLDecoder.decode(fields[this.fieldToEncode], "UTF-8");
+                } catch (IllegalArgumentException e) {
+                    this.log.error("can't decode: " + fields[this.fieldToEncode], e);
+                }
                 StringBuilder sb = new StringBuilder();
                 for (String field : fields) {
                     sb.append(field);
