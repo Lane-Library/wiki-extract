@@ -1,13 +1,12 @@
 package edu.stanford.lane.extraction;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.CookieSpecs;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,29 +15,29 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractExtractor {
 
-    protected static final RequestConfig HTTP_CONFIG = RequestConfig.custom().setCookieSpec(CookieSpecs.IGNORE_COOKIES)
-            .build();
-
-    protected static final HttpClient httpClient = HttpClients.createDefault();
-
     private Logger log = LoggerFactory.getLogger(getClass());
 
-    protected String getContent(final String url) {
-        String content = null;
-        HttpResponse res = null;
-        HttpGet method = new HttpGet(url);
-        method.setConfig(HTTP_CONFIG);
+    protected String getContent(final String link) {
+        StringBuilder content = new StringBuilder();
+        URL url = null;
         try {
-            res = AbstractExtractor.httpClient.execute(method);
-            if (res.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                content = EntityUtils.toString(res.getEntity());
+            url = new URL(link);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            InputStream is = null;
+            if (200 == connection.getResponseCode()) {
+                is = connection.getInputStream();
+            } else {
+                is = connection.getErrorStream();
             }
-        } catch (Exception e) {
-            this.log.error(e.getMessage(), e);
-            method.abort();
-        } finally {
-            method.releaseConnection();
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
+                String inputLine;
+                while ((inputLine = br.readLine()) != null) {
+                    content.append(inputLine);
+                }
+            }
+        } catch (IOException e) {
+            this.log.info("can't fetch data for url: " + url);
         }
-        return content;
+        return content.toString();
     }
 }

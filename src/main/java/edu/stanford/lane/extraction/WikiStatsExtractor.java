@@ -11,14 +11,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.CookieSpecs;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,17 +19,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author ryanmax
  */
-public class WikiStatsExtractor implements Extractor {
+public class WikiStatsExtractor extends AbstractExtractor implements Extractor {
 
     // project: en.wikipedia.org
     // access: all-access (desktop, mobile-app, mobile-web)
     // agent: user (NOT spider or bot)
     private static final String BASE_URL = "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/{page}/daily/20160801/20160831";
-
-    private static final RequestConfig HTTP_CONFIG = RequestConfig.custom().setCookieSpec(CookieSpecs.IGNORE_COOKIES)
-            .build();
-
-    private static final HttpClient httpClient = HttpClients.createDefault();
 
     private String endDate;
 
@@ -68,7 +55,7 @@ public class WikiStatsExtractor implements Extractor {
                 FileWriter fw = new FileWriter(this.inputFile + "-out.txt", true);) {
             String line;
             while ((line = br.readLine()) != null) {
-                String json = getContent(line);
+                String json = getContent(getUrl(line));
                 int views = jsonToStats(json);
                 fw.write(line);
                 fw.write("\t");
@@ -81,7 +68,7 @@ public class WikiStatsExtractor implements Extractor {
         }
     }
 
-    private String getContent(final String page) {
+    private String getUrl(final String page) {
         String encodedPage = page.replace(" ", "_");
         try {
             encodedPage = URLEncoder.encode(encodedPage, StandardCharsets.UTF_8.name());
@@ -91,22 +78,7 @@ public class WikiStatsExtractor implements Extractor {
         String url = BASE_URL.replace("{page}", encodedPage);
         url = url.replace("{startDate}", this.startDate);
         url = url.replace("{endDate}", this.endDate);
-        String htmlContent = null;
-        HttpResponse res;
-        HttpGet method = new HttpGet(url);
-        method.setConfig(HTTP_CONFIG);
-        try {
-            res = WikiStatsExtractor.httpClient.execute(method);
-            if (res.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                htmlContent = EntityUtils.toString(res.getEntity());
-            }
-        } catch (Exception e) {
-            this.log.error(e.getMessage(), e);
-            method.abort();
-        } finally {
-            method.releaseConnection();
-        }
-        return htmlContent;
+        return url;
     }
 
     private int jsonToStats(final String json) {
