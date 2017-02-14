@@ -105,7 +105,7 @@ public class PubmedExtractor extends AbstractExtractor implements Extractor {
             try {
                 data = this.mapper.readValue(json, Map.class);
             } catch (IOException e) {
-                this.log.error("error parsing json", e);
+                this.log.error("error parsing json for doi: " + doi, e);
             }
             HashMap<String, Object> map1 = (HashMap<String, Object>) data.get("esearchresult");
             int count = Integer.parseInt((String) map1.get("count"));
@@ -133,7 +133,7 @@ public class PubmedExtractor extends AbstractExtractor implements Extractor {
                 types.add(node.getTextContent().trim());
             }
         } catch (SAXException | IOException | ParserConfigurationException | XPathExpressionException e) {
-            this.log.error("error parsing xml", e);
+            this.log.error("error parsing xml for pmid: " + pmid, e);
         }
         return types;
     }
@@ -156,7 +156,7 @@ public class PubmedExtractor extends AbstractExtractor implements Extractor {
                 }
             }
         } catch (IOException e) {
-            this.log.error(e.getMessage(), e);
+            this.log.error("error extracting from file: " + input, e);
         }
     }
 }
