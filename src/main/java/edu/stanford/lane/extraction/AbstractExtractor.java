@@ -15,6 +15,8 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractExtractor {
 
+    private static final int FIVE_SECONDS = 5000;
+
     private Logger log = LoggerFactory.getLogger(getClass());
 
     protected String getContent(final String link) {
@@ -24,9 +26,16 @@ public abstract class AbstractExtractor {
             url = new URL(link);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             InputStream is = null;
-            if (200 == connection.getResponseCode()) {
+            int status = connection.getResponseCode();
+            if (200 == status) {
                 is = connection.getInputStream();
+            } else if (503 == status) {
+                this.log.info("503 ... retrying request");
+                Thread.sleep(FIVE_SECONDS);
+                return getContent(link);
             } else {
+                this.log.info("response status: " + status);
+                this.log.info("can't fetch data for url: " + url);
                 is = connection.getErrorStream();
             }
             try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
@@ -35,8 +44,8 @@ public abstract class AbstractExtractor {
                     content.append(inputLine);
                 }
             }
-        } catch (IOException e) {
-            this.log.info("can't fetch data for url: " + url);
+        } catch (IOException | InterruptedException e) {
+            this.log.info("can't fetch data for url: " + url, e);
         }
         return content.toString();
     }
