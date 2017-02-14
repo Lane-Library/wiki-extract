@@ -134,6 +134,7 @@ public class PubmedExtractor extends AbstractExtractor implements Extractor {
             }
         } catch (SAXException | IOException | ParserConfigurationException | XPathExpressionException e) {
             this.log.error("error parsing xml for pmid: " + pmid, e);
+            this.log.error("xml: " + xml);
         }
         return types;
     }
