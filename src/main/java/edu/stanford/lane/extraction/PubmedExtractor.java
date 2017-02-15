@@ -32,37 +32,37 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class PubmedExtractor extends AbstractExtractor implements Extractor {
 
-//    public class PubmedArticle {
-//
-//        private String pmid;
-//
-//        private List<String> pubTypes;
-//
-//        private String title;
-//
-//        public PubmedArticle(final String pmid, final String title, final List<String> pubTypes) {
-//            this.pmid = pmid;
-//            this.title = title;
-//            this.pubTypes = pubTypes;
-//        }
-//
-//        public void addPubType(final String type) {
-//            this.pubTypes.add(type);
-//        }
-//
-//        public String getPmid() {
-//            return this.pmid;
-//        }
-//
-//        public List<String> getPubTypes() {
-//            return this.pubTypes;
-//        }
-//
-//        public String getTitle() {
-//            return this.title;
-//        }
-//    }
-//
+    // public class PubmedArticle {
+    //
+    // private String pmid;
+    //
+    // private List<String> pubTypes;
+    //
+    // private String title;
+    //
+    // public PubmedArticle(final String pmid, final String title, final List<String> pubTypes) {
+    // this.pmid = pmid;
+    // this.title = title;
+    // this.pubTypes = pubTypes;
+    // }
+    //
+    // public void addPubType(final String type) {
+    // this.pubTypes.add(type);
+    // }
+    //
+    // public String getPmid() {
+    // return this.pmid;
+    // }
+    //
+    // public List<String> getPubTypes() {
+    // return this.pubTypes;
+    // }
+    //
+    // public String getTitle() {
+    // return this.title;
+    // }
+    // }
+    //
     private static final String EFETCH_BASE_URL = "https://ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&retmode=xml&id=";
 
     private static final String ESEARCH_BASE_URL = "https://ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmax=1&retmode=json&term=";
@@ -108,7 +108,12 @@ public class PubmedExtractor extends AbstractExtractor implements Extractor {
                 this.log.error("error parsing json for doi: " + doi, e);
             }
             HashMap<String, Object> map1 = (HashMap<String, Object>) data.get("esearchresult");
-            int count = Integer.parseInt((String) map1.get("count"));
+            int count = 0;
+            try {
+                count = Integer.parseInt((String) map1.get("count"));
+            } catch (NumberFormatException e) {
+                this.log.error("can't parse count from json: " + json, e);
+            }
             if (count == 1) {
                 pmid = ((List<String>) map1.get("idlist")).get(0);
             } else if (count > 1) {
