@@ -82,6 +82,7 @@ public class PubmedExtractor extends AbstractExtractor implements Extractor {
      * information
      *
      * @param doiFile
+     *            path to doi file
      */
     public PubmedExtractor(final String doiFile) {
         this.doiFile = doiFile;

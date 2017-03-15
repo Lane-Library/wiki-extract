@@ -51,6 +51,9 @@ public class Summarizer {
      * page_title
      * link_to_doi.org
      * </pre>
+     * 
+     * @param inputFiles
+     *            list of input file paths
      */
     public Summarizer(final String[] inputFiles) {
         for (String file : inputFiles) {
