@@ -15,6 +15,8 @@ import org.slf4j.LoggerFactory;
  */
 public class URLDecodeFile {
 
+    private static final String TAB = "\t";
+
     private int fieldToEncode;
 
     private String inputFile;
@@ -42,7 +44,7 @@ public class URLDecodeFile {
                 FileWriter fw = new FileWriter(this.inputFile + "-decoded.txt", false);) {
             String line;
             while ((line = br.readLine()) != null) {
-                String[] fields = line.split("\t");
+                String[] fields = line.split(TAB);
                 try {
                     fields[this.fieldToEncode] = URLDecoder.decode(fields[this.fieldToEncode], "UTF-8");
                 } catch (IllegalArgumentException e) {
@@ -51,7 +53,7 @@ public class URLDecodeFile {
                 StringBuilder sb = new StringBuilder();
                 for (String field : fields) {
                     sb.append(field);
-                    sb.append("\t");
+                    sb.append(TAB);
                 }
                 sb.deleteCharAt(sb.length() - 1);
                 sb.append("\n");

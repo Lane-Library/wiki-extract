@@ -107,10 +107,10 @@ public class WikiPageExtractor extends AbstractExtractor implements Extractor {
                         String ns = el.getAttribute("ns");
                         String title = el.getAttribute("title");
                         sb.append(cat);
-                        // sb.append("\t" + el.getAttribute("pageid"));
-                        sb.append("\t" + ns);
-                        sb.append("\t" + title);
-                        sb.append("\n");
+                        // sb.append(TAB).append(el.getAttribute("pageid"));
+                        sb.append(TAB).append(ns);
+                        sb.append(TAB).append(title);
+                        sb.append(RETURN);
                         writeLine(fw, cat, ns, title);
                         if ("1".equals(ns)) {
                             // if need pageid, need another API call, 500 titles at a time for bots:
@@ -134,10 +134,10 @@ public class WikiPageExtractor extends AbstractExtractor implements Extractor {
             throws IOException {
         StringBuilder sb = new StringBuilder();
         sb.append(cat);
-        // sb.append("\t" + el.getAttribute("pageid"));
-        sb.append("\t" + ns);
-        sb.append("\t" + title);
-        sb.append("\n");
+        // sb.append(TAB).append(el.getAttribute("pageid"));
+        sb.append(TAB).append(ns);
+        sb.append(TAB).append(title);
+        sb.append(RETURN);
         fw.write(sb.toString());
         this.pages.add(ns + ":::" + title);
     }

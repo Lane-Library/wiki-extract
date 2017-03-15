@@ -54,7 +54,6 @@ public class DateReduceMWCites {
     }
 
     public static void main(final String[] args) throws IOException {
-        new DateReduceMWCites(
-                "/Users/ryanmax/workspaces/workbench/wiki-mwcites/data/cites/data/doi_isbn_pubmed_and_arxiv.enwiki-20161201.tsv");
+        new DateReduceMWCites("/path/to/mwcites/data/doi_isbn_pubmed_and_arxiv.enwiki-20161201.tsv");
     }
 }

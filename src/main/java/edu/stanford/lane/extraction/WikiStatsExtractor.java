@@ -58,10 +58,9 @@ public class WikiStatsExtractor extends AbstractExtractor implements Extractor {
                 String json = getContent(getUrl(line));
                 int views = jsonToStats(json);
                 fw.write(line);
-                fw.write("\t");
+                fw.write(TAB);
                 fw.write(Integer.toString(views));
-                fw.write("\n");
-                System.out.println(line + "\t" + views);
+                fw.write(TAB);
             }
         } catch (IOException e) {
             this.log.error(e.getMessage(), e);

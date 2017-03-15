@@ -153,11 +153,11 @@ public class PubmedExtractor extends AbstractExtractor implements Extractor {
                 if (!pmid.isEmpty()) {
                     for (String type : pmidToPubTypes(pmid)) {
                         fw.write(doi);
-                        fw.write("\t");
+                        fw.write(TAB);
                         fw.write(pmid);
-                        fw.write("\t");
+                        fw.write(TAB);
                         fw.write(type);
-                        fw.write("\n");
+                        fw.write(RETURN);
                     }
                 }
             }

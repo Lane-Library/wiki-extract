@@ -22,6 +22,8 @@ public class Summarizer {
         CAT_1_ONLY_PROJECT_MED, CAT_2_ONLY_NON_PROJECT_MED, CAT_3_BOTH_PROJECT_MED_AND_NON_PROJECT_MED, UNKOWN
     }
 
+    private static final String TAB = "\t";
+
     private DOIParser doiParser = new DOIParser();
 
     private Set<String> dois = new HashSet<>();
@@ -59,7 +61,7 @@ public class Summarizer {
             }
         }
         for (String entry : this.uniqueEntries) {
-            String[] fields = entry.split("\t");
+            String[] fields = entry.split(TAB);
             String isProjectMedPage = fields[3];
             String link = fields[5];
             for (String doi : this.doiParser.parse(link)) {
@@ -115,8 +117,8 @@ public class Summarizer {
             }
             StringBuilder sb = new StringBuilder();
             sb.append(doi);
-            sb.append("\t" + cat);
-            sb.append("\t" + count);
+            sb.append(TAB).append(cat);
+            sb.append(TAB).append(count);
             sb.append("\n");
             doiOutFos.write(sb.toString().getBytes());
         }

@@ -156,12 +156,12 @@ public class WikiLinkExtractor extends AbstractExtractor implements Extractor {
             boolean isProjectMed = this.projectMedicinePages.contains(ns + ":::" + title);
             StringBuilder sb = new StringBuilder();
             sb.append(lang);
-            sb.append("\t" + el.getAttribute("pageid"));
-            sb.append("\t" + ns);
-            sb.append("\t" + isProjectMed);
-            sb.append("\t" + title);
-            sb.append("\t" + url);
-            sb.append("\n");
+            sb.append(TAB).append(el.getAttribute("pageid"));
+            sb.append(TAB).append(ns);
+            sb.append(TAB).append(isProjectMed);
+            sb.append(TAB).append(title);
+            sb.append(TAB).append(url);
+            sb.append(RETURN);
             fos.write(sb.toString().getBytes());
         }
     }
