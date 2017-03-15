@@ -70,6 +70,13 @@
                 <testTarget>1.8</testTarget>
             </configuration>
         </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jar-plugin</artifactId>
+            <configuration>
+                <jarName>wiki-extract</jarName>
+            </configuration>
+        </plugin>
     </plugins>
   </build>
   <dependencyManagement>
