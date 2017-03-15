@@ -50,7 +50,6 @@ public class Summarizer {
      * isProjectMedicinePage
      * page_title
      * link_to_doi.org
-     * DOI (not needed ... will be parsed from link field)
      * </pre>
      */
     public Summarizer(final String[] inputFiles) {
