@@ -43,8 +43,6 @@ public class WikiLinkExtractor extends AbstractExtractor implements Extractor {
 
     private DocumentBuilderFactory factory;
 
-    private boolean filter = true;
-
     private List<String> languages = new ArrayList<>();
 
     private Logger log = LoggerFactory.getLogger(getClass());
@@ -55,17 +53,11 @@ public class WikiLinkExtractor extends AbstractExtractor implements Extractor {
 
     private Set<String> projectMedicinePages;
 
-    private String urlFilter;
-
     private XPath xpath;
 
-    public WikiLinkExtractor(final String euquery, final String urlFilter, final String outputPath,
-            final String languages, final String namespace) {
+    public WikiLinkExtractor(final String euquery, final String outputPath, final String languages,
+            final String namespace) {
         this.euquery = euquery;
-        this.urlFilter = urlFilter;
-        if (null == this.urlFilter || this.urlFilter.isEmpty()) {
-            this.filter = false;
-        }
         this.namespace = namespace;
         for (String l : languages.split(",")) {
             this.languages.add(l);
@@ -96,7 +88,6 @@ public class WikiLinkExtractor extends AbstractExtractor implements Extractor {
         }
         this.log.info("euquery: " + this.euquery);
         this.log.info("path: " + this.path);
-        this.log.info("urlFilter: " + this.urlFilter);
         this.log.info("namespace: " + this.namespace);
         this.log.info("languages: " + this.languages);
         for (String lang : this.languages) {
@@ -152,17 +143,15 @@ public class WikiLinkExtractor extends AbstractExtractor implements Extractor {
         String url = el.getAttribute("url");
         String ns = el.getAttribute("ns");
         String title = el.getAttribute("title");
-        if (!this.filter || url.contains(this.urlFilter)) {
-            boolean isProjectMed = this.projectMedicinePages.contains(ns + ":::" + title);
-            StringBuilder sb = new StringBuilder();
-            sb.append(lang);
-            sb.append(TAB).append(el.getAttribute("pageid"));
-            sb.append(TAB).append(ns);
-            sb.append(TAB).append(isProjectMed);
-            sb.append(TAB).append(title);
-            sb.append(TAB).append(url);
-            sb.append(RETURN);
-            fos.write(sb.toString().getBytes());
-        }
+        boolean isProjectMed = this.projectMedicinePages.contains(ns + ":::" + title);
+        StringBuilder sb = new StringBuilder();
+        sb.append(lang);
+        sb.append(TAB).append(el.getAttribute("pageid"));
+        sb.append(TAB).append(ns);
+        sb.append(TAB).append(isProjectMed);
+        sb.append(TAB).append(title);
+        sb.append(TAB).append(url);
+        sb.append(RETURN);
+        fos.write(sb.toString().getBytes());
     }
 }

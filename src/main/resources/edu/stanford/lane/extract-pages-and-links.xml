@@ -11,7 +11,6 @@
                 </bean>
                 <bean class="edu.stanford.lane.extraction.WikiLinkExtractor">
                     <constructor-arg name="euquery" value="${wiki-link-extractor.euquery}"/>
-                    <constructor-arg name="urlFilter" value="${wiki-link-extractor.urlFilter}"/>
                     <constructor-arg name="outputPath" value="${wiki-link-extractor.outputPath}"/>
                     <constructor-arg name="languages" value="${wiki-link-extractor.languages}"/>
                     <constructor-arg name="namespace" value="${wiki-link-extractor.namespace}"/>
