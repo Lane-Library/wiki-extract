@@ -30,6 +30,8 @@ import org.xml.sax.SAXException;
 import edu.stanford.lane.WikiExtractException;
 
 /**
+ * extract external links from Wikipedia; assumes pages.obj is present (i.e. run WikiPageExtractor first)
+ *
  * @author ryanmax
  */
 public class WikiLinkExtractor extends AbstractExtractor implements Extractor {
@@ -134,7 +136,7 @@ public class WikiLinkExtractor extends AbstractExtractor implements Extractor {
             }
             outFos.close();
         } catch (IOException e) {
-            this.log.error(e.getMessage(), e);
+            this.log.error("can't write outFile", e);
             throw new WikiExtractException(e);
         }
     }

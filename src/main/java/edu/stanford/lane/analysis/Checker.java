@@ -11,13 +11,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * simple utility to print out strings (DOIs) from file1 not found in file2
+ * 
  * @author ryanmax
  */
 public class Checker {
 
     private Logger log = LoggerFactory.getLogger(getClass());
 
-    // print out dois from file1 not found in file2
     public Checker(final String inputFile1, final String inputFile2) {
         Set<String> strings1 = new HashSet<>();
         Set<String> strings2 = new HashSet<>();

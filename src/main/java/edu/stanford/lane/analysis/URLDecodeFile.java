@@ -6,11 +6,14 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * simple utility used to URL decode DOIs from CrossRef (Joe Wass) assumes tab-delimited input with DOIs in position 1
+ *
  * @author ryanmax
  */
 public class URLDecodeFile {
@@ -23,9 +26,6 @@ public class URLDecodeFile {
 
     private Logger log = LoggerFactory.getLogger(getClass());
 
-    /*
-     * used this to URL decode DOIs from CrossRef (Joe Wass) assumes tab-delimited input
-     */
     public URLDecodeFile(final String inputFile, final int fieldToEncode) {
         this.inputFile = inputFile;
         this.fieldToEncode = fieldToEncode;
@@ -46,7 +46,8 @@ public class URLDecodeFile {
             while ((line = br.readLine()) != null) {
                 String[] fields = line.split(TAB);
                 try {
-                    fields[this.fieldToEncode] = URLDecoder.decode(fields[this.fieldToEncode], "UTF-8");
+                    fields[this.fieldToEncode] = URLDecoder.decode(fields[this.fieldToEncode],
+                            StandardCharsets.UTF_8.name());
                 } catch (IllegalArgumentException e) {
                     this.log.error("can't decode: " + fields[this.fieldToEncode], e);
                 }
@@ -60,7 +61,7 @@ public class URLDecodeFile {
                 fw.write(sb.toString());
             }
         } catch (IOException e) {
-            this.log.error(e.getMessage(), e);
+            this.log.error("can't read/write to extract", e);
         }
     }
 }

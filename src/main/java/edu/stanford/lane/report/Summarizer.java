@@ -14,6 +14,21 @@ import org.slf4j.LoggerFactory;
 import edu.stanford.lane.DOIParser;
 
 /**
+ * summarize wiki extract data files; re-parse DOI from link_to_doi.org field because parsing changed after data was
+ * originally extracted from Wikipedia
+ *
+ * <pre>
+ * ================================================================================
+ * legend for YYYY-MM-DD/en/out.txt files:
+ * ================================================================================
+ * language (all en)
+ * pageid (https://en.wikipedia.org/?curid=XXXX to fetch page)
+ * namespace (https://en.wikipedia.org/wiki/Wikipedia:Namespace)
+ * isProjectMedicinePage
+ * page_title
+ * link_to_doi.org
+ * </pre>
+ *
  * @author ryanmax
  */
 public class Summarizer {
@@ -51,7 +66,7 @@ public class Summarizer {
      * page_title
      * link_to_doi.org
      * </pre>
-     * 
+     *
      * @param inputFiles
      *            list of input file paths
      */

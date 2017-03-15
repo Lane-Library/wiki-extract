@@ -28,6 +28,8 @@ import org.xml.sax.SAXException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
+ * extract PubMed article information (via ncbi eutils) for DOIs found in PubMed
+ * 
  * @author ryanmax
  */
 public class PubmedExtractor extends AbstractExtractor implements Extractor {

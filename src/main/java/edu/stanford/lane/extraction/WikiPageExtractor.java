@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -31,6 +32,9 @@ import org.xml.sax.SAXException;
 import edu.stanford.lane.WikiExtractException;
 
 /**
+ * extract a list of Wikipedia pages that are children of one or more Wikipedia category; writes them to a file
+ * pages.obj used by WikiLinkExtractor
+ *
  * @author ryanmax
  */
 public class WikiPageExtractor extends AbstractExtractor implements Extractor {
@@ -73,20 +77,21 @@ public class WikiPageExtractor extends AbstractExtractor implements Extractor {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("pages.obj"))) {
             oos.writeObject(this.pages);
         } catch (IOException e) {
-            this.log.error(e.getMessage(), e);
+            this.log.error("error writing pages object", e);
         }
         this.log.info(" - end - page extraction");
     }
 
     public void extract(final String cat) {
         try {
-            String query = BASE_URL + "&cmtitle=" + URLEncoder.encode(cat, "UTF-8");
+            String query = BASE_URL + "&cmtitle=" + URLEncoder.encode(cat, StandardCharsets.UTF_8.name());
             String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
             FileWriter fw = new FileWriter(this.path + "/" + date + "-out.txt", true);
             boolean more = true;
             String cmcontinue = "";
             while (more) {
-                String xmlContent = getContent(query + "&cmcontinue=" + URLEncoder.encode(cmcontinue, "UTF-8"));
+                String xmlContent = getContent(
+                        query + "&cmcontinue=" + URLEncoder.encode(cmcontinue, StandardCharsets.UTF_8.name()));
                 Document doc;
                 NodeList cmNodes = null;
                 try {
