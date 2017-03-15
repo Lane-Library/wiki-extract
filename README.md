@@ -18,6 +18,7 @@ $ mvn install
   * [extract-pages-and-links.xml](src/main/resources/edu/stanford/lane/extract-pages-and-links.xml): extracts a list of all [WikiProject Medicine](https://en.wikipedia.org/wiki/Wikipedia:WikiProject_Medicine) pages and then extracts all external links from all Wikipedia pages matching the wiki-link-extractor.euquery property (e.g. *.doi.org)
   * [extract-pubmed.xml](src/main/resources/edu/stanford/lane/extract-pubmed.xml): from a list of DOIs, extract article information for those DOIs found in PubMed
   * [extract-stats.xml](src/main/resources/edu/stanford/lane/extract-stats.xml): from a list of Wikipedia pages, extract usage data for each (start and end dates for usage period configured with wiki-stats-extractor.startDate and wiki-stats-extractor.endDate properties)
+
 * Example:
 ```
 $ cd wiki-extract
