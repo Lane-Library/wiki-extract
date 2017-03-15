@@ -52,12 +52,13 @@ $ java -classpath target/wiki-extract.jar edu.stanford.lane.report.Summarizer /p
 
 ### Reference Links
 
+* [Definition of a Wikipedia article; includes definitions of wiki namespaces](https://en.wikipedia.org/wiki/Wikipedia:What_is_an_article%3F)
+
+* [List of Wikipedias](https://en.wikipedia.org/wiki/List_of_Wikipedias)
+
 * [Wikipedia API example of all doi.org external links](https://en.wikipedia.org/wiki/Special:ApiSandbox#action=query&list=exturlusage&format=xml&euprop=ids|title|url&euquery=*.doi.org)
+
+* [WikiProject Medicine pages by category](https://en.wikipedia.org/wiki/Category:Medicine_articles_by_quality)
 
 * [Wikipedia Pageviews API](https://wikitech.wikimedia.org/wiki/Analytics/PageviewAPI)
 
-* [Definition of a Wikipedia article; includes definitions of wiki namespaces](https://en.wikipedia.org/wiki/Wikipedia:What_is_an_article%3F)
-
-* [list of Wikipedias](https://en.wikipedia.org/wiki/List_of_Wikipedias)
-
-* [WikiProject Medicine pages by category](https://en.wikipedia.org/wiki/Category:Medicine_articles_by_quality)
