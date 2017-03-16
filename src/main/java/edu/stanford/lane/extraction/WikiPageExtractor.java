@@ -83,10 +83,9 @@ public class WikiPageExtractor extends AbstractExtractor implements Extractor {
     }
 
     public void extract(final String cat) {
-        try {
+        String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+        try (FileWriter fw = new FileWriter(this.path + "/" + date + "-out.txt", true)) {
             String query = BASE_URL + "&cmtitle=" + URLEncoder.encode(cat, StandardCharsets.UTF_8.name());
-            String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-            FileWriter fw = new FileWriter(this.path + "/" + date + "-out.txt", true);
             boolean more = true;
             String cmcontinue = "";
             while (more) {
@@ -128,7 +127,6 @@ public class WikiPageExtractor extends AbstractExtractor implements Extractor {
                     LOG.error("failed to fetch data", e);
                 }
             }
-            fw.close();
         } catch (IOException e) {
             LOG.error(e.getMessage(), e);
             throw new WikiExtractException(e);
