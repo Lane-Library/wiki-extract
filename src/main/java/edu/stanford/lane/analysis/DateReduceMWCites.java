@@ -11,11 +11,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *         <pre>
+ * <pre>
  * utility used to reduce mwcites data set to DOIs found on or before end of 2016-08-31 so as to compare mwcites with our extraction approach
  * mwcites dataset: https://figshare.com/articles/Wikipedia_Scholarly_Article_Citations/1299540/9
  * python-mwcites: https://github.com/mediawiki-utilities/python-mwcites
- *         </pre>
+ * </pre>
  *
  * <pre>
  * from 2017-02-09 email from ryanmax:
@@ -53,8 +53,8 @@ public class DateReduceMWCites {
         if (in.exists()) {
             File outfile = new File(inputFile + "-out.txt");
             outfile.createNewFile();
-            FileOutputStream outFos = new FileOutputStream(outfile);
-            try (BufferedReader br = new BufferedReader(new FileReader(in))) {
+            try (BufferedReader br = new BufferedReader(new FileReader(in));
+                    FileOutputStream outFos = new FileOutputStream(outfile)) {
                 String line;
                 String idType;
                 String timestamp;
@@ -72,7 +72,6 @@ public class DateReduceMWCites {
             } catch (IOException e) {
                 this.log.error("can't read file", e);
             }
-            outFos.close();
         }
     }
 

@@ -104,11 +104,9 @@ public class WikiLinkExtractor extends AbstractExtractor implements Extractor {
         if (!directory.exists()) {
             directory.mkdir();
         }
-        try {
-            File outFile = new File(directory.getAbsolutePath() + "/out.txt");
-            FileOutputStream outFos = null;
+        File outFile = new File(directory.getAbsolutePath() + "/out.txt");
+        try (FileOutputStream outFos = new FileOutputStream(outFile)) {
             outFile.createNewFile();
-            outFos = new FileOutputStream(outFile);
             boolean more = true;
             int offset = 0;
             while (more) {
@@ -134,7 +132,6 @@ public class WikiLinkExtractor extends AbstractExtractor implements Extractor {
                     this.log.error("failed to fetch data", e);
                 }
             }
-            outFos.close();
         } catch (IOException e) {
             this.log.error("can't write outFile", e);
             throw new WikiExtractException(e);
@@ -145,15 +142,15 @@ public class WikiLinkExtractor extends AbstractExtractor implements Extractor {
         String url = el.getAttribute("url");
         String ns = el.getAttribute("ns");
         String title = el.getAttribute("title");
-            boolean isProjectMed = this.projectMedicinePages.contains(ns + ":::" + title);
-            StringBuilder sb = new StringBuilder();
-            sb.append(lang);
+        boolean isProjectMed = this.projectMedicinePages.contains(ns + ":::" + title);
+        StringBuilder sb = new StringBuilder();
+        sb.append(lang);
         sb.append(TAB).append(el.getAttribute("pageid"));
         sb.append(TAB).append(ns);
         sb.append(TAB).append(isProjectMed);
         sb.append(TAB).append(title);
         sb.append(TAB).append(url);
         sb.append(RETURN);
-            fos.write(sb.toString().getBytes());
-        }
+        fos.write(sb.toString().getBytes());
     }
+}

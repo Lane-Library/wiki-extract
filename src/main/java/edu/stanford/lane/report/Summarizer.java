@@ -117,28 +117,28 @@ public class Summarizer {
     private void writeDoiOutput(final String path) throws IOException {
         File doiOutFile = new File(path);
         doiOutFile.createNewFile();
-        FileOutputStream doiOutFos = new FileOutputStream(doiOutFile);
-        for (String doi : this.dois) {
-            Category cat = Category.UNKOWN;
-            int count = 0;
-            if (this.mapNonProjectMedicineDois.containsKey(doi) && this.mapProjectMedicineDois.containsKey(doi)) {
-                cat = Category.CAT_3_BOTH_PROJECT_MED_AND_NON_PROJECT_MED;
-                count = this.mapNonProjectMedicineDois.get(doi).intValue()
-                        + this.mapProjectMedicineDois.get(doi).intValue();
-            } else if (this.mapNonProjectMedicineDois.containsKey(doi)) {
-                cat = Category.CAT_2_ONLY_NON_PROJECT_MED;
-                count = this.mapNonProjectMedicineDois.get(doi).intValue();
-            } else if (this.mapProjectMedicineDois.containsKey(doi)) {
-                cat = Category.CAT_1_ONLY_PROJECT_MED;
-                count = this.mapProjectMedicineDois.get(doi).intValue();
+        try (FileOutputStream doiOutFos = new FileOutputStream(doiOutFile)) {
+            for (String doi : this.dois) {
+                Category cat = Category.UNKOWN;
+                int count = 0;
+                if (this.mapNonProjectMedicineDois.containsKey(doi) && this.mapProjectMedicineDois.containsKey(doi)) {
+                    cat = Category.CAT_3_BOTH_PROJECT_MED_AND_NON_PROJECT_MED;
+                    count = this.mapNonProjectMedicineDois.get(doi).intValue()
+                            + this.mapProjectMedicineDois.get(doi).intValue();
+                } else if (this.mapNonProjectMedicineDois.containsKey(doi)) {
+                    cat = Category.CAT_2_ONLY_NON_PROJECT_MED;
+                    count = this.mapNonProjectMedicineDois.get(doi).intValue();
+                } else if (this.mapProjectMedicineDois.containsKey(doi)) {
+                    cat = Category.CAT_1_ONLY_PROJECT_MED;
+                    count = this.mapProjectMedicineDois.get(doi).intValue();
+                }
+                StringBuilder sb = new StringBuilder();
+                sb.append(doi);
+                sb.append(TAB).append(cat);
+                sb.append(TAB).append(count);
+                sb.append("\n");
+                doiOutFos.write(sb.toString().getBytes());
             }
-            StringBuilder sb = new StringBuilder();
-            sb.append(doi);
-            sb.append(TAB).append(cat);
-            sb.append(TAB).append(count);
-            sb.append("\n");
-            doiOutFos.write(sb.toString().getBytes());
         }
-        doiOutFos.close();
     }
 }
