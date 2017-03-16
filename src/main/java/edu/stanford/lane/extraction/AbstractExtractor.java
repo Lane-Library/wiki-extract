@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,25 +32,25 @@ public abstract class AbstractExtractor {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             InputStream is = null;
             int status = connection.getResponseCode();
-            if (200 == status) {
+            if (HttpURLConnection.HTTP_OK == status) {
                 is = connection.getInputStream();
-            } else if (503 == status) {
+            } else if (HttpURLConnection.HTTP_UNAVAILABLE == status) {
                 LOG.info("503 ... retrying request");
                 Thread.sleep(FIVE_SECONDS);
                 return getContent(link);
             } else {
-                LOG.info("response status: " + status);
-                LOG.info("can't fetch data for url: " + url);
+                LOG.info("response status: {}", status);
+                LOG.info("can't fetch data for url: {}", url);
                 is = connection.getErrorStream();
             }
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
                 String inputLine;
                 while ((inputLine = br.readLine()) != null) {
                     content.append(inputLine);
                 }
             }
         } catch (IOException | InterruptedException e) {
-            LOG.info("can't fetch data for url: " + url, e);
+            LOG.info("can't fetch data for url: {}", url, e);
         }
         return content.toString();
     }
