@@ -92,10 +92,12 @@ public class WikiStatsExtractor extends AbstractExtractor implements Extractor {
             } catch (IOException e) {
                 LOG.error("error deserializing json", e);
             }
-            List<Map<String, Object>> list = (List<Map<String, Object>>) statsData.get("items");
-            for (Map<String, Object> map : list) {
-                int views = (int) map.get("views");
-                sum = sum + views;
+            if (null != statsData) {
+                List<Map<String, Object>> list = (List<Map<String, Object>>) statsData.get("items");
+                for (Map<String, Object> map : list) {
+                    int views = (int) map.get("views");
+                    sum = sum + views;
+                }
             }
         }
         return sum;
