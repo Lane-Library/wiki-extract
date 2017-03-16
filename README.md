@@ -1,4 +1,4 @@
-# Extract external links from Wikipedia
+# wiki-extract: extract external link data from Wikipedia
 
 ## Prerequisites
 * Java 8
