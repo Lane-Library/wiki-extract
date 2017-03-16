@@ -2,9 +2,11 @@ package edu.stanford.lane.analysis;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
@@ -12,15 +14,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * simple utility used to URL decode DOIs from CrossRef (Joe Wass) assumes tab-delimited input with DOIs in position 1
+ * simple utility used to URL decode DOIs from CrossRef (Joe Wass) assumes tab-delimited input; first argument is DOI field index
  *
  * @author ryanmax
  */
 public class URLDecodeFile {
 
     private static final Logger LOG = LoggerFactory.getLogger(URLDecodeFile.class);
-
-    private static final String TAB = "\t";
 
     private int fieldToEncode;
 
@@ -31,7 +31,7 @@ public class URLDecodeFile {
         this.fieldToEncode = fieldToEncode;
         File in = new File(this.inputFile);
         if (in.exists()) {
-            extract(in);
+            decode(in);
         }
     }
 
@@ -39,29 +39,35 @@ public class URLDecodeFile {
         new URLDecodeFile(args[0], Integer.parseInt(args[1]));
     }
 
-    private void extract(final File input) {
-        try (BufferedReader br = new BufferedReader(new FileReader(input));
-                FileWriter fw = new FileWriter(this.inputFile + "-decoded.txt", false);) {
+    private void decode(final File input) {
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(new FileInputStream(input), StandardCharsets.UTF_8));
+                FileOutputStream outFos = new FileOutputStream(new File(this.inputFile + "-decoded.txt"))) {
             String line;
             while ((line = br.readLine()) != null) {
-                String[] fields = line.split(TAB);
-                try {
-                    fields[this.fieldToEncode] = URLDecoder.decode(fields[this.fieldToEncode],
-                            StandardCharsets.UTF_8.name());
-                } catch (IllegalArgumentException e) {
-                    LOG.error("can't decode: " + fields[this.fieldToEncode], e);
-                }
+                String[] fields = line.split("\t");
+                fields[this.fieldToEncode] = doDecode(fields[this.fieldToEncode]);
                 StringBuilder sb = new StringBuilder();
                 for (String field : fields) {
                     sb.append(field);
-                    sb.append(TAB);
+                    sb.append('\t');
                 }
                 sb.deleteCharAt(sb.length() - 1);
-                sb.append("\n");
-                fw.write(sb.toString());
+                sb.append('\n');
+                outFos.write(sb.toString().getBytes(StandardCharsets.UTF_8));
             }
         } catch (IOException e) {
             LOG.error("can't read/write to extract", e);
         }
+    }
+
+    private String doDecode(final String string) {
+        String decoded = string;
+        try {
+            decoded = URLDecoder.decode(decoded, StandardCharsets.UTF_8.name());
+        } catch (IllegalArgumentException | UnsupportedEncodingException e) {
+            LOG.error("can't decode: {}", decoded, e);
+        }
+        return decoded;
     }
 }
