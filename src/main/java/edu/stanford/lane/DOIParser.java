@@ -160,7 +160,7 @@ public class DOIParser {
                 }
             }
         } catch (IOException e) {
-            LOG.error("can't fetch data for doi: {}", url);
+            LOG.info("can't fetch data for doi: {}", url, e);
         }
         return json.toString();
     }
