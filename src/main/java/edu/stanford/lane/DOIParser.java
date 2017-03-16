@@ -12,6 +12,7 @@ import java.io.ObjectOutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,13 +33,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class DOIParser {
 
+    private static final Logger LOG = LoggerFactory.getLogger(DOIParser.class);
+
     private static ObjectMapper mapper = new ObjectMapper();
 
     private static final String OBJECT_STORE = "parsed-dois.obj";
 
     private static final int TEN_SECS = 1000 * 10;
-
-    private Logger log = LoggerFactory.getLogger(getClass());
 
     private Map<String, List<String>> parsedDois;
 
@@ -60,8 +61,7 @@ public class DOIParser {
         String s = doi;
         s = s.replaceFirst("(?i).*\\.org/", "");
         // http://www.doi.org/doi_handbook/2_Numbering.html#2.6.3
-        s = s.replaceFirst("(?i)^doi:\\s?", "");
-        return s;
+        return s.replaceFirst("(?i)^doi:\\s?", "");
     }
 
     private static String resolveShortenedDoi(final String doi) {
@@ -127,16 +127,16 @@ public class DOIParser {
                 try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(objFile))) {
                     this.parsedDois = (Map<String, List<String>>) ois.readObject();
                 } catch (IOException | ClassNotFoundException e) {
-                    this.log.error("can't load parsed DOI object file", e);
+                    LOG.error("can't load parsed DOI object file", e);
                 }
             }
         } else if (this.parsedDois.size() % 1000 == 0
                 && objFile.lastModified() < System.currentTimeMillis() - TEN_SECS) {
-            this.log.debug("writing new parsed DOI object file with # of dois: " + this.parsedDois.size());
+            LOG.debug("writing new parsed DOI object file with # of dois: {}", this.parsedDois.size());
             try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(OBJECT_STORE))) {
                 oos.writeObject(this.parsedDois);
             } catch (IOException e) {
-                this.log.error("can't write parsed DOI object file", e);
+                LOG.error("can't write parsed DOI object file", e);
             }
         }
     }
@@ -153,14 +153,14 @@ public class DOIParser {
             } else {
                 is = connection.getErrorStream();
             }
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
                 String inputLine;
                 while ((inputLine = br.readLine()) != null) {
                     json.append(inputLine);
                 }
             }
         } catch (IOException e) {
-            this.log.info("can't fetch data for doi: " + url);
+            LOG.error("can't fetch data for doi: {}", url);
         }
         return json.toString();
     }
@@ -173,9 +173,9 @@ public class DOIParser {
             try {
                 data = mapper.readValue(json, Map.class);
             } catch (IOException e) {
-                this.log.error("can't fetch aliases from json : " + json, e);
+                LOG.error("can't fetch aliases from json : " + json, e);
             }
-            if (data.containsKey("values")) {
+            if (null != data && data.containsKey("values")) {
                 List<Map<String, Object>> list = (List<Map<String, Object>>) data.get("values");
                 for (Map<String, Object> map : list) {
                     String type = (String) map.get("type");
@@ -197,9 +197,11 @@ public class DOIParser {
             try {
                 data = mapper.readValue(json, Map.class);
             } catch (IOException e) {
-                this.log.error("can't fetch data from json : " + json, e);
+                LOG.error("can't fetch data from json : " + json, e);
             }
-            handle = data.get("handle");
+            if (null != data) {
+                handle = data.get("handle");
+            }
         }
         return handle;
     }
