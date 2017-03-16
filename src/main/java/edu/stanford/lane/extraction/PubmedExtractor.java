@@ -6,11 +6,13 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
@@ -34,37 +36,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class PubmedExtractor extends AbstractExtractor implements Extractor {
 
-    // public class PubmedArticle {
-    //
-    // private String pmid;
-    //
-    // private List<String> pubTypes;
-    //
-    // private String title;
-    //
-    // public PubmedArticle(final String pmid, final String title, final List<String> pubTypes) {
-    // this.pmid = pmid;
-    // this.title = title;
-    // this.pubTypes = pubTypes;
-    // }
-    //
-    // public void addPubType(final String type) {
-    // this.pubTypes.add(type);
-    // }
-    //
-    // public String getPmid() {
-    // return this.pmid;
-    // }
-    //
-    // public List<String> getPubTypes() {
-    // return this.pubTypes;
-    // }
-    //
-    // public String getTitle() {
-    // return this.title;
-    // }
-    // }
-    //
     private static final String EFETCH_BASE_URL = "https://ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&retmode=xml&id=";
 
     private static final String ESEARCH_BASE_URL = "https://ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmax=1&retmode=json&term=";
@@ -108,19 +79,21 @@ public class PubmedExtractor extends AbstractExtractor implements Extractor {
             try {
                 data = this.mapper.readValue(json, Map.class);
             } catch (IOException e) {
-                LOG.error("error parsing json for doi: " + doi, e);
+                LOG.error("error parsing json for doi: {}", doi, e);
             }
-            HashMap<String, Object> map1 = (HashMap<String, Object>) data.get("esearchresult");
-            int count = 0;
-            try {
-                count = Integer.parseInt((String) map1.get("count"));
-            } catch (NumberFormatException e) {
-                LOG.error("can't parse count from json: " + json, e);
-            }
-            if (count == 1) {
-                pmid = ((List<String>) map1.get("idlist")).get(0);
-            } else if (count > 1) {
-                LOG.info("more than one pmid for doi: " + doi);
+            if (null != data) {
+                HashMap<String, Object> map1 = (HashMap<String, Object>) data.get("esearchresult");
+                int count = 0;
+                try {
+                    count = Integer.parseInt((String) map1.get("count"));
+                } catch (NumberFormatException e) {
+                    LOG.error("can't parse count from json: {}", json, e);
+                }
+                if (count == 1) {
+                    pmid = ((List<String>) map1.get("idlist")).get(0);
+                } else if (count > 1) {
+                    LOG.info("more than one pmid for doi: {}", doi);
+                }
             }
         }
         return pmid;
@@ -133,7 +106,9 @@ public class PubmedExtractor extends AbstractExtractor implements Extractor {
             return types;
         }
         try {
-            Document doc = this.factory.newDocumentBuilder().parse(new ByteArrayInputStream(xml.getBytes()));
+            this.factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            Document doc = this.factory.newDocumentBuilder()
+                    .parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
             NodeList nodes = (NodeList) this.xpath.evaluate("//Article/PublicationTypeList/PublicationType", doc,
                     XPathConstants.NODESET);
             for (int n = 0; n < nodes.getLength(); n++) {
@@ -141,7 +116,7 @@ public class PubmedExtractor extends AbstractExtractor implements Extractor {
                 types.add(node.getTextContent().trim());
             }
         } catch (SAXException | IOException | ParserConfigurationException | XPathExpressionException e) {
-            LOG.error("error parsing xml for pmid: " + pmid, e);
+            LOG.error("error parsing xml for pmid: {}", pmid, e);
             LOG.error("xml: " + xml);
         }
         return types;
@@ -149,7 +124,7 @@ public class PubmedExtractor extends AbstractExtractor implements Extractor {
 
     private void extract(final File input) {
         try (BufferedReader br = new BufferedReader(new FileReader(input));
-                FileWriter fw = new FileWriter(this.doiFile + "-pm-types-out.txt", true);) {
+                FileWriter fw = new FileWriter(this.doiFile + "-pm-types-out.txt", true)) {
             String doi;
             while ((doi = br.readLine()) != null) {
                 String pmid = doiToPmid(doi);
@@ -165,7 +140,7 @@ public class PubmedExtractor extends AbstractExtractor implements Extractor {
                 }
             }
         } catch (IOException e) {
-            LOG.error("error extracting from file: " + input, e);
+            LOG.error("error extracting from file: {}", input, e);
         }
     }
 }
