@@ -3,9 +3,10 @@ package edu.stanford.lane.extraction;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -117,24 +118,25 @@ public class PubmedExtractor extends AbstractExtractor implements Extractor {
             }
         } catch (SAXException | IOException | ParserConfigurationException | XPathExpressionException e) {
             LOG.error("error parsing xml for pmid: {}", pmid, e);
-            LOG.error("xml: " + xml);
+            LOG.error("xml: {}", xml);
         }
         return types;
     }
 
     private void extract(final File input) {
-        try (BufferedReader br = new BufferedReader(new FileReader(input));
-                FileWriter fw = new FileWriter(this.doiFile + "-pm-types-out.txt", true)) {
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(new FileInputStream(input), StandardCharsets.UTF_8));
+                FileOutputStream fw = new FileOutputStream(new File(this.doiFile + "-pm-types-out.txt"))) {
             String doi;
             while ((doi = br.readLine()) != null) {
                 String pmid = doiToPmid(doi);
                 if (!pmid.isEmpty()) {
                     for (String type : pmidToPubTypes(pmid)) {
-                        fw.write(doi);
+                        fw.write(doi.toString().getBytes(StandardCharsets.UTF_8));
                         fw.write(TAB);
-                        fw.write(pmid);
+                        fw.write(pmid.toString().getBytes(StandardCharsets.UTF_8));
                         fw.write(TAB);
-                        fw.write(type);
+                        fw.write(type.toString().getBytes(StandardCharsets.UTF_8));
                         fw.write(RETURN);
                     }
                 }
