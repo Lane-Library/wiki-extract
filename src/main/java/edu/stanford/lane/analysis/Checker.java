@@ -2,8 +2,10 @@ package edu.stanford.lane.analysis;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -43,7 +45,8 @@ public class Checker {
 
     private Set<String> extract(final File input) {
         Set<String> strings = new HashSet<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(input));) {
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(new FileInputStream(input), StandardCharsets.UTF_8))) {
             String line;
             while ((line = br.readLine()) != null) {
                 strings.add(line);
