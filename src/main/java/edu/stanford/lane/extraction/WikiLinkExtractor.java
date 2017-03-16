@@ -6,6 +6,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -68,14 +71,18 @@ public class WikiLinkExtractor extends AbstractExtractor implements Extractor {
         this.factory = DocumentBuilderFactory.newInstance();
         this.xpath = XPathFactory.newInstance().newXPath();
         String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-        String[] pathDirs = { outputPath, outputPath + "/" + date };
-        for (String dir : pathDirs) {
-            File directory = new File(dir);
-            if (!directory.exists()) {
-                directory.mkdir();
+        this.path = outputPath + "/" + date;
+        List<String> paths = new ArrayList<>();
+        for (String lang : this.languages) {
+            paths.add(outputPath + "/" + date + "/" + lang);
+        }
+        for (String dir : paths) {
+            try {
+                Files.createDirectories(Paths.get(dir));
+            } catch (IOException e) {
+                LOG.error("can't create directory {}", dir, e);
             }
         }
-        this.path = outputPath + "/" + date;
     }
 
     @Override
@@ -89,10 +96,10 @@ public class WikiLinkExtractor extends AbstractExtractor implements Extractor {
         } catch (ClassNotFoundException e) {
             throw new WikiExtractException(e);
         }
-        LOG.info("euquery: " + this.euquery);
-        LOG.info("path: " + this.path);
-        LOG.info("namespace: " + this.namespace);
-        LOG.info("languages: " + this.languages);
+        LOG.info("euquery: {}", this.euquery);
+        LOG.info("path: {}", this.path);
+        LOG.info("namespace: {}", this.namespace);
+        LOG.info("languages: {}", this.languages);
         for (String lang : this.languages) {
             extract(lang);
         }
@@ -101,37 +108,17 @@ public class WikiLinkExtractor extends AbstractExtractor implements Extractor {
 
     public void extract(final String lang) {
         String query = PROTOCOL + lang + BASE_URL + "&euquery=" + this.euquery + "&eunamespace=" + this.namespace;
-        File directory = new File(this.path + "/" + lang);
-        if (!directory.exists()) {
-            directory.mkdir();
-        }
-        File outFile = new File(directory.getAbsolutePath() + "/out.txt");
+        File outFile = new File(this.path + "/" + lang + "/out.txt");
         try (FileOutputStream outFos = new FileOutputStream(outFile)) {
-            outFile.createNewFile();
             boolean more = true;
             int offset = 0;
             while (more) {
                 String xmlContent = getContent(query + "&euoffset=" + offset);
-                Document doc;
-                NodeList euNodes = null;
-                try {
-                    this.factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-                    doc = this.factory.newDocumentBuilder().parse(new ByteArrayInputStream(xmlContent.getBytes()));
-                    NodeList continueNode = (NodeList) this.xpath.evaluate("/api/continue", doc,
-                            XPathConstants.NODESET);
-                    if (continueNode.getLength() == 0) {
-                        more = false;
-                    } else {
-                        offset = Integer.parseInt(
-                                (String) this.xpath.evaluate("/api/continue/@euoffset", doc, XPathConstants.STRING));
-                    }
-                    euNodes = (NodeList) this.xpath.evaluate("/api/query/exturlusage/eu", doc, XPathConstants.NODESET);
-                    for (int n = 0; n < euNodes.getLength(); n++) {
-                        Element el = (Element) euNodes.item(n);
-                        maybeWriteLine(lang, el, outFos);
-                    }
-                } catch (SAXException | IOException | ParserConfigurationException | XPathExpressionException e) {
-                    LOG.error("failed to fetch data", e);
+                Document doc = xmlToDocument(xmlContent);
+                more = moreToParse(doc);
+                offset = parseOffset(doc);
+                for (Element el : extractEuElements(doc)) {
+                    writeLine(lang, el, outFos);
                 }
             }
         } catch (IOException e) {
@@ -140,7 +127,45 @@ public class WikiLinkExtractor extends AbstractExtractor implements Extractor {
         }
     }
 
-    private void maybeWriteLine(final String lang, final Element el, final FileOutputStream fos) throws IOException {
+    private List<Element> extractEuElements(final Document doc) {
+        List<Element> elements = new ArrayList<>();
+        try {
+            NodeList euNodes = (NodeList) this.xpath.evaluate("/api/query/exturlusage/eu", doc, XPathConstants.NODESET);
+            for (int n = 0; n < euNodes.getLength(); n++) {
+                Element el = (Element) euNodes.item(n);
+                elements.add(el);
+            }
+        } catch (XPathExpressionException e) {
+            LOG.error("error extracting usage elements", e);
+        }
+        return elements;
+    }
+
+    private boolean moreToParse(final Document doc) {
+        NodeList continueNode = null;
+        try {
+            continueNode = (NodeList) this.xpath.evaluate("/api/continue", doc, XPathConstants.NODESET);
+        } catch (XPathExpressionException e) {
+            LOG.error("error determining if more content to parse", e);
+        }
+        if (null != continueNode && continueNode.getLength() != 0) {
+            return true;
+        }
+        return false;
+    }
+
+    private int parseOffset(final Document doc) {
+        int offset = 0;
+        try {
+            offset = Integer
+                    .parseInt((String) this.xpath.evaluate("/api/continue/@euoffset", doc, XPathConstants.STRING));
+        } catch (NumberFormatException | XPathExpressionException e) {
+            LOG.error("error parsing offset", e);
+        }
+        return offset;
+    }
+
+    private void writeLine(final String lang, final Element el, final FileOutputStream fos) {
         String url = el.getAttribute("url");
         String ns = el.getAttribute("ns");
         String title = el.getAttribute("title");
@@ -153,6 +178,22 @@ public class WikiLinkExtractor extends AbstractExtractor implements Extractor {
         sb.append(TAB).append(title);
         sb.append(TAB).append(url);
         sb.append(RETURN);
-        fos.write(sb.toString().getBytes());
+        try {
+            fos.write(sb.toString().getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            LOG.error("can't write line", e);
+        }
+    }
+
+    private Document xmlToDocument(final String xmlContent) {
+        Document doc = null;
+        try {
+            this.factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            doc = this.factory.newDocumentBuilder()
+                    .parse(new ByteArrayInputStream(xmlContent.getBytes(StandardCharsets.UTF_8)));
+        } catch (SAXException | IOException | ParserConfigurationException e) {
+            LOG.error("failed to parse xml: {}", xmlContent, e);
+        }
+        return doc;
     }
 }
