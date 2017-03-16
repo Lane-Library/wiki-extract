@@ -31,6 +31,6 @@ public class LimitedSMTPAppender extends SMTPAppender {
             this.lastVisited = 0;
         }
         this.lastVisited++;
-        return super.checkEntryConditions() && this.lastVisited <= this.limit;
+        return this.lastVisited <= this.limit && super.checkEntryConditions();
     }
 }
