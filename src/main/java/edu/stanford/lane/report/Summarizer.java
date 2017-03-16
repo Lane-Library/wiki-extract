@@ -2,9 +2,11 @@ package edu.stanford.lane.report;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -33,15 +35,13 @@ import edu.stanford.lane.DOIParser;
  */
 public class Summarizer {
 
-    protected static enum Category {
+    protected enum Category {
         CAT_1_ONLY_PROJECT_MED, CAT_2_ONLY_NON_PROJECT_MED, CAT_3_BOTH_PROJECT_MED_AND_NON_PROJECT_MED, UNKOWN
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(Summarizer.class);
 
-    private static final String TAB = "\t";
-
-    private DOIParser doiParser = new DOIParser();
+    private static final char TAB = '\t';
 
     private Set<String> dois = new HashSet<>();
 
@@ -71,6 +71,7 @@ public class Summarizer {
      *            list of input file paths
      */
     public Summarizer(final String[] inputFiles) {
+        DOIParser doiParser = new DOIParser();
         for (String file : inputFiles) {
             File in = new File(file);
             if (in.exists()) {
@@ -78,10 +79,10 @@ public class Summarizer {
             }
         }
         for (String entry : this.uniqueEntries) {
-            String[] fields = entry.split(TAB);
+            String[] fields = entry.split(Character.toString(TAB));
             String isProjectMedPage = fields[3];
             String link = fields[5];
-            for (String doi : this.doiParser.parse(link)) {
+            for (String doi : doiParser.parse(link)) {
                 if (null != doi && !doi.isEmpty()) {
                     this.dois.add(doi);
                 }
@@ -104,7 +105,8 @@ public class Summarizer {
     }
 
     private void extract(final File input) {
-        try (BufferedReader br = new BufferedReader(new FileReader(input));) {
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(new FileInputStream(input), StandardCharsets.UTF_8))) {
             String line;
             while ((line = br.readLine()) != null) {
                 this.uniqueEntries.add(line);
@@ -116,7 +118,6 @@ public class Summarizer {
 
     private void writeDoiOutput(final String path) throws IOException {
         File doiOutFile = new File(path);
-        doiOutFile.createNewFile();
         try (FileOutputStream doiOutFos = new FileOutputStream(doiOutFile)) {
             for (String doi : this.dois) {
                 Category cat = Category.UNKOWN;
@@ -136,8 +137,8 @@ public class Summarizer {
                 sb.append(doi);
                 sb.append(TAB).append(cat);
                 sb.append(TAB).append(count);
-                sb.append("\n");
-                doiOutFos.write(sb.toString().getBytes());
+                sb.append('\n');
+                doiOutFos.write(sb.toString().getBytes(StandardCharsets.UTF_8));
             }
         }
     }
