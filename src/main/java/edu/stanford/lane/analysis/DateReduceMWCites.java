@@ -46,7 +46,7 @@ public class DateReduceMWCites {
 
     private static final Instant end = Instant.parse("2016-09-01T00:00:00Z");
 
-    private Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(DateReduceMWCites.class);
 
     public DateReduceMWCites(final String inputFile) throws IOException {
         File in = new File(inputFile);
@@ -70,7 +70,7 @@ public class DateReduceMWCites {
                     }
                 }
             } catch (IOException e) {
-                this.log.error("can't read file", e);
+                LOG.error("can't read file", e);
             }
         }
     }

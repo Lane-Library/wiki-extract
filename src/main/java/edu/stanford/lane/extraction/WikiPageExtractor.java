@@ -41,11 +41,11 @@ public class WikiPageExtractor extends AbstractExtractor implements Extractor {
 
     private static final String BASE_URL = "https://en.wikipedia.org/w/api.php?action=query&format=xml&list=categorymembers&cmlimit=5000&cmtitle=";
 
+    private static final Logger LOG = LoggerFactory.getLogger(WikiPageExtractor.class);
+
     private List<String> categories = new ArrayList<>();
 
     private DocumentBuilderFactory factory;
-
-    private Logger log = LoggerFactory.getLogger(getClass());
 
     private Set<String> pages = new HashSet<>();
 
@@ -68,18 +68,18 @@ public class WikiPageExtractor extends AbstractExtractor implements Extractor {
 
     @Override
     public void extract() {
-        this.log.info(" - start - page extraction");
-        this.log.info("path: " + this.path);
-        this.log.info("categories: " + this.categories);
+        LOG.info(" - start - page extraction");
+        LOG.info("path: " + this.path);
+        LOG.info("categories: " + this.categories);
         for (String cat : this.categories) {
             extract(cat.trim());
         }
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("pages.obj"))) {
             oos.writeObject(this.pages);
         } catch (IOException e) {
-            this.log.error("error writing pages object", e);
+            LOG.error("error writing pages object", e);
         }
-        this.log.info(" - end - page extraction");
+        LOG.info(" - end - page extraction");
     }
 
     public void extract(final String cat) {
@@ -125,12 +125,12 @@ public class WikiPageExtractor extends AbstractExtractor implements Extractor {
                         fw.write(sb.toString());
                     }
                 } catch (SAXException | IOException | ParserConfigurationException | XPathExpressionException e) {
-                    this.log.error("failed to fetch data", e);
+                    LOG.error("failed to fetch data", e);
                 }
             }
             fw.close();
         } catch (IOException e) {
-            this.log.error(e.getMessage(), e);
+            LOG.error(e.getMessage(), e);
             throw new WikiExtractException(e);
         }
     }

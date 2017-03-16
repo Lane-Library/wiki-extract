@@ -18,13 +18,13 @@ import org.slf4j.LoggerFactory;
  */
 public class URLDecodeFile {
 
+    private static final Logger LOG = LoggerFactory.getLogger(URLDecodeFile.class);
+
     private static final String TAB = "\t";
 
     private int fieldToEncode;
 
     private String inputFile;
-
-    private Logger log = LoggerFactory.getLogger(getClass());
 
     public URLDecodeFile(final String inputFile, final int fieldToEncode) {
         this.inputFile = inputFile;
@@ -49,7 +49,7 @@ public class URLDecodeFile {
                     fields[this.fieldToEncode] = URLDecoder.decode(fields[this.fieldToEncode],
                             StandardCharsets.UTF_8.name());
                 } catch (IllegalArgumentException e) {
-                    this.log.error("can't decode: " + fields[this.fieldToEncode], e);
+                    LOG.error("can't decode: " + fields[this.fieldToEncode], e);
                 }
                 StringBuilder sb = new StringBuilder();
                 for (String field : fields) {
@@ -61,7 +61,7 @@ public class URLDecodeFile {
                 fw.write(sb.toString());
             }
         } catch (IOException e) {
-            this.log.error("can't read/write to extract", e);
+            LOG.error("can't read/write to extract", e);
         }
     }
 }

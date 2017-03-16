@@ -29,11 +29,11 @@ public class WikiStatsExtractor extends AbstractExtractor implements Extractor {
     // agent: user (NOT spider or bot)
     private static final String BASE_URL = "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/{page}/daily/20160801/20160831";
 
+    private static final Logger LOG = LoggerFactory.getLogger(WikiStatsExtractor.class);
+
     private String endDate;
 
     private String inputFile;
-
-    private Logger log = LoggerFactory.getLogger(getClass());
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -66,7 +66,7 @@ public class WikiStatsExtractor extends AbstractExtractor implements Extractor {
                 fw.write(TAB);
             }
         } catch (IOException e) {
-            this.log.error("can't read/write to extract", e);
+            LOG.error("can't read/write to extract", e);
         }
     }
 
@@ -75,7 +75,7 @@ public class WikiStatsExtractor extends AbstractExtractor implements Extractor {
         try {
             encodedPage = URLEncoder.encode(encodedPage, StandardCharsets.UTF_8.name());
         } catch (UnsupportedEncodingException e) {
-            this.log.error("won't happen", e);
+            LOG.error("won't happen", e);
         }
         String url = BASE_URL.replace("{page}", encodedPage);
         url = url.replace("{startDate}", this.startDate);
@@ -90,7 +90,7 @@ public class WikiStatsExtractor extends AbstractExtractor implements Extractor {
             try {
                 statsData = this.mapper.readValue(json, Map.class);
             } catch (IOException e) {
-                this.log.error("error deserializing json", e);
+                LOG.error("error deserializing json", e);
             }
             List<Map<String, Object>> list = (List<Map<String, Object>>) statsData.get("items");
             for (Map<String, Object> map : list) {

@@ -21,7 +21,7 @@ public abstract class AbstractExtractor {
 
     private static final int FIVE_SECONDS = 5000;
 
-    private Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractExtractor.class);
 
     protected String getContent(final String link) {
         StringBuilder content = new StringBuilder();
@@ -34,12 +34,12 @@ public abstract class AbstractExtractor {
             if (200 == status) {
                 is = connection.getInputStream();
             } else if (503 == status) {
-                this.log.info("503 ... retrying request");
+                LOG.info("503 ... retrying request");
                 Thread.sleep(FIVE_SECONDS);
                 return getContent(link);
             } else {
-                this.log.info("response status: " + status);
-                this.log.info("can't fetch data for url: " + url);
+                LOG.info("response status: " + status);
+                LOG.info("can't fetch data for url: " + url);
                 is = connection.getErrorStream();
             }
             try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
@@ -49,7 +49,7 @@ public abstract class AbstractExtractor {
                 }
             }
         } catch (IOException | InterruptedException e) {
-            this.log.info("can't fetch data for url: " + url, e);
+            LOG.info("can't fetch data for url: " + url, e);
         }
         return content.toString();
     }

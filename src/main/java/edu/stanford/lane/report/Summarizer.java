@@ -37,13 +37,13 @@ public class Summarizer {
         CAT_1_ONLY_PROJECT_MED, CAT_2_ONLY_NON_PROJECT_MED, CAT_3_BOTH_PROJECT_MED_AND_NON_PROJECT_MED, UNKOWN
     }
 
+    private static final Logger LOG = LoggerFactory.getLogger(Summarizer.class);
+
     private static final String TAB = "\t";
 
     private DOIParser doiParser = new DOIParser();
 
     private Set<String> dois = new HashSet<>();
-
-    private Logger log = LoggerFactory.getLogger(getClass());
 
     private IncrementingHashMap mapNonProjectMedicineDois = new IncrementingHashMap();
 
@@ -95,7 +95,7 @@ public class Summarizer {
         try {
             writeDoiOutput("summary.txt");
         } catch (IOException e) {
-            this.log.error("can't write output", e);
+            LOG.error("can't write output", e);
         }
     }
 
@@ -110,7 +110,7 @@ public class Summarizer {
                 this.uniqueEntries.add(line);
             }
         } catch (IOException e) {
-            this.log.error("can't read file", e);
+            LOG.error("can't read file", e);
         }
     }
 

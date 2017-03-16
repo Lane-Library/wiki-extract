@@ -29,7 +29,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * extract PubMed article information (via ncbi eutils) for DOIs found in PubMed
- * 
+ *
  * @author ryanmax
  */
 public class PubmedExtractor extends AbstractExtractor implements Extractor {
@@ -69,13 +69,13 @@ public class PubmedExtractor extends AbstractExtractor implements Extractor {
 
     private static final String ESEARCH_BASE_URL = "https://ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmax=1&retmode=json&term=";
 
+    private static final Logger LOG = LoggerFactory.getLogger(PubmedExtractor.class);
+
     protected DocumentBuilderFactory factory;
 
     protected XPath xpath;
 
     private String doiFile;
-
-    private Logger log = LoggerFactory.getLogger(getClass());
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -108,19 +108,19 @@ public class PubmedExtractor extends AbstractExtractor implements Extractor {
             try {
                 data = this.mapper.readValue(json, Map.class);
             } catch (IOException e) {
-                this.log.error("error parsing json for doi: " + doi, e);
+                LOG.error("error parsing json for doi: " + doi, e);
             }
             HashMap<String, Object> map1 = (HashMap<String, Object>) data.get("esearchresult");
             int count = 0;
             try {
                 count = Integer.parseInt((String) map1.get("count"));
             } catch (NumberFormatException e) {
-                this.log.error("can't parse count from json: " + json, e);
+                LOG.error("can't parse count from json: " + json, e);
             }
             if (count == 1) {
                 pmid = ((List<String>) map1.get("idlist")).get(0);
             } else if (count > 1) {
-                this.log.info("more than one pmid for doi: " + doi);
+                LOG.info("more than one pmid for doi: " + doi);
             }
         }
         return pmid;
@@ -141,8 +141,8 @@ public class PubmedExtractor extends AbstractExtractor implements Extractor {
                 types.add(node.getTextContent().trim());
             }
         } catch (SAXException | IOException | ParserConfigurationException | XPathExpressionException e) {
-            this.log.error("error parsing xml for pmid: " + pmid, e);
-            this.log.error("xml: " + xml);
+            LOG.error("error parsing xml for pmid: " + pmid, e);
+            LOG.error("xml: " + xml);
         }
         return types;
     }
@@ -165,7 +165,7 @@ public class PubmedExtractor extends AbstractExtractor implements Extractor {
                 }
             }
         } catch (IOException e) {
-            this.log.error("error extracting from file: " + input, e);
+            LOG.error("error extracting from file: " + input, e);
         }
     }
 }

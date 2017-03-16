@@ -39,6 +39,8 @@ public class WikiLinkExtractor extends AbstractExtractor implements Extractor {
     // as is, query fetches http and protocol-less links; add &euprotocol=https to query for https and protocol-less
     private static final String BASE_URL = ".wikipedia.org/w/api.php?action=query&list=exturlusage&format=xml&euprop=ids%7Ctitle%7Curl&eulimit=5000";
 
+    private static final Logger LOG = LoggerFactory.getLogger(WikiLinkExtractor.class);
+
     private static final String PROTOCOL = "https://";
 
     private String euquery;
@@ -46,8 +48,6 @@ public class WikiLinkExtractor extends AbstractExtractor implements Extractor {
     private DocumentBuilderFactory factory;
 
     private List<String> languages = new ArrayList<>();
-
-    private Logger log = LoggerFactory.getLogger(getClass());
 
     private String namespace;
 
@@ -79,23 +79,23 @@ public class WikiLinkExtractor extends AbstractExtractor implements Extractor {
 
     @Override
     public void extract() {
-        this.log.info(" - start - link extraction");
+        LOG.info(" - start - link extraction");
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("pages.obj"))) {
             this.projectMedicinePages = (Set<String>) ois.readObject();
         } catch (IOException e) {
-            this.log.error("missing pages.obj file ... can't determine wikiProjectMedicine status", e);
+            LOG.error("missing pages.obj file ... can't determine wikiProjectMedicine status", e);
             this.projectMedicinePages = new HashSet<>();
         } catch (ClassNotFoundException e) {
             throw new WikiExtractException(e);
         }
-        this.log.info("euquery: " + this.euquery);
-        this.log.info("path: " + this.path);
-        this.log.info("namespace: " + this.namespace);
-        this.log.info("languages: " + this.languages);
+        LOG.info("euquery: " + this.euquery);
+        LOG.info("path: " + this.path);
+        LOG.info("namespace: " + this.namespace);
+        LOG.info("languages: " + this.languages);
         for (String lang : this.languages) {
             extract(lang);
         }
-        this.log.info(" - end - link extraction");
+        LOG.info(" - end - link extraction");
     }
 
     public void extract(final String lang) {
@@ -129,11 +129,11 @@ public class WikiLinkExtractor extends AbstractExtractor implements Extractor {
                         maybeWriteLine(lang, el, outFos);
                     }
                 } catch (SAXException | IOException | ParserConfigurationException | XPathExpressionException e) {
-                    this.log.error("failed to fetch data", e);
+                    LOG.error("failed to fetch data", e);
                 }
             }
         } catch (IOException e) {
-            this.log.error("can't write outFile", e);
+            LOG.error("can't write outFile", e);
             throw new WikiExtractException(e);
         }
     }

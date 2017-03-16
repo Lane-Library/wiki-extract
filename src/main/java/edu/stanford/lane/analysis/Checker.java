@@ -12,12 +12,12 @@ import org.slf4j.LoggerFactory;
 
 /**
  * simple utility to print out strings (DOIs) from file1 not found in file2
- * 
+ *
  * @author ryanmax
  */
 public class Checker {
 
-    private Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(Checker.class);
 
     public Checker(final String inputFile1, final String inputFile2) {
         Set<String> strings1 = new HashSet<>();
@@ -49,7 +49,7 @@ public class Checker {
                 strings.add(line);
             }
         } catch (IOException e) {
-            this.log.error("can't read file", e);
+            LOG.error("can't read file", e);
         }
         return strings;
     }
