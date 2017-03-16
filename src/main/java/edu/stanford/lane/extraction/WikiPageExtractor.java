@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
@@ -94,6 +95,7 @@ public class WikiPageExtractor extends AbstractExtractor implements Extractor {
                 Document doc;
                 NodeList cmNodes = null;
                 try {
+                    this.factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
                     doc = this.factory.newDocumentBuilder().parse(new ByteArrayInputStream(xmlContent.getBytes()));
                     NodeList continueNode = (NodeList) this.xpath.evaluate("/api/continue", doc,
                             XPathConstants.NODESET);
