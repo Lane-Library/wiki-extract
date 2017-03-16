@@ -1,10 +1,8 @@
 package edu.stanford.lane;
 
-import java.io.IOException;
 import java.util.List;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import edu.stanford.lane.extraction.Extractor;
 
@@ -12,15 +10,14 @@ public class Main {
 
     private List<Extractor> extractors;
 
-    public static void main(final String[] args) throws IOException {
+    public static void main(final String[] args) {
         ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-                "edu/stanford/lane/" + args[0] + ".xml");
+                "edu/stanford/lane/" + args[0]);
         Main loader = (Main) context.getBean("main");
-        ThreadPoolTaskExecutor executor = (ThreadPoolTaskExecutor) context.getBean("executor");
         try {
             loader.run();
         } finally {
-            executor.shutdown();
+            context.close();
         }
     }
 

@@ -28,6 +28,8 @@ import org.xml.sax.SAXException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
+ * extract PubMed article information (via ncbi eutils) for DOIs found in PubMed
+ * 
  * @author ryanmax
  */
 public class PubmedExtractor extends AbstractExtractor implements Extractor {
@@ -82,6 +84,7 @@ public class PubmedExtractor extends AbstractExtractor implements Extractor {
      * information
      *
      * @param doiFile
+     *            path to doi file
      */
     public PubmedExtractor(final String doiFile) {
         this.doiFile = doiFile;
@@ -153,11 +156,11 @@ public class PubmedExtractor extends AbstractExtractor implements Extractor {
                 if (!pmid.isEmpty()) {
                     for (String type : pmidToPubTypes(pmid)) {
                         fw.write(doi);
-                        fw.write("\t");
+                        fw.write(TAB);
                         fw.write(pmid);
-                        fw.write("\t");
+                        fw.write(TAB);
                         fw.write(type);
-                        fw.write("\n");
+                        fw.write(RETURN);
                     }
                 }
             }

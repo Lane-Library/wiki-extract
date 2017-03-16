@@ -15,6 +15,10 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractExtractor {
 
+    protected static final String RETURN = "\n";
+
+    protected static final String TAB = "\t";
+
     private static final int FIVE_SECONDS = 5000;
 
     private Logger log = LoggerFactory.getLogger(getClass());

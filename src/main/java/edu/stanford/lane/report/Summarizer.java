@@ -14,6 +14,21 @@ import org.slf4j.LoggerFactory;
 import edu.stanford.lane.DOIParser;
 
 /**
+ * summarize wiki extract data files; re-parse DOI from link_to_doi.org field because parsing changed after data was
+ * originally extracted from Wikipedia
+ *
+ * <pre>
+ * ================================================================================
+ * legend for YYYY-MM-DD/en/out.txt files:
+ * ================================================================================
+ * language (all en)
+ * pageid (https://en.wikipedia.org/?curid=XXXX to fetch page)
+ * namespace (https://en.wikipedia.org/wiki/Wikipedia:Namespace)
+ * isProjectMedicinePage
+ * page_title
+ * link_to_doi.org
+ * </pre>
+ *
  * @author ryanmax
  */
 public class Summarizer {
@@ -21,6 +36,8 @@ public class Summarizer {
     protected static enum Category {
         CAT_1_ONLY_PROJECT_MED, CAT_2_ONLY_NON_PROJECT_MED, CAT_3_BOTH_PROJECT_MED_AND_NON_PROJECT_MED, UNKOWN
     }
+
+    private static final String TAB = "\t";
 
     private DOIParser doiParser = new DOIParser();
 
@@ -48,8 +65,10 @@ public class Summarizer {
      * isProjectMedicinePage
      * page_title
      * link_to_doi.org
-     * DOI (not needed ... will be parsed from link field)
      * </pre>
+     *
+     * @param inputFiles
+     *            list of input file paths
      */
     public Summarizer(final String[] inputFiles) {
         for (String file : inputFiles) {
@@ -59,7 +78,7 @@ public class Summarizer {
             }
         }
         for (String entry : this.uniqueEntries) {
-            String[] fields = entry.split("\t");
+            String[] fields = entry.split(TAB);
             String isProjectMedPage = fields[3];
             String link = fields[5];
             for (String doi : this.doiParser.parse(link)) {
@@ -115,8 +134,8 @@ public class Summarizer {
             }
             StringBuilder sb = new StringBuilder();
             sb.append(doi);
-            sb.append("\t" + cat);
-            sb.append("\t" + count);
+            sb.append(TAB).append(cat);
+            sb.append(TAB).append(count);
             sb.append("\n");
             doiOutFos.write(sb.toString().getBytes());
         }

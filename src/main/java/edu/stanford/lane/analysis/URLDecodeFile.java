@@ -6,14 +6,19 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * simple utility used to URL decode DOIs from CrossRef (Joe Wass) assumes tab-delimited input with DOIs in position 1
+ *
  * @author ryanmax
  */
 public class URLDecodeFile {
+
+    private static final String TAB = "\t";
 
     private int fieldToEncode;
 
@@ -21,9 +26,6 @@ public class URLDecodeFile {
 
     private Logger log = LoggerFactory.getLogger(getClass());
 
-    /*
-     * used this to URL decode DOIs from CrossRef (Joe Wass) assumes tab-delimited input
-     */
     public URLDecodeFile(final String inputFile, final int fieldToEncode) {
         this.inputFile = inputFile;
         this.fieldToEncode = fieldToEncode;
@@ -42,23 +44,24 @@ public class URLDecodeFile {
                 FileWriter fw = new FileWriter(this.inputFile + "-decoded.txt", false);) {
             String line;
             while ((line = br.readLine()) != null) {
-                String[] fields = line.split("\t");
+                String[] fields = line.split(TAB);
                 try {
-                    fields[this.fieldToEncode] = URLDecoder.decode(fields[this.fieldToEncode], "UTF-8");
+                    fields[this.fieldToEncode] = URLDecoder.decode(fields[this.fieldToEncode],
+                            StandardCharsets.UTF_8.name());
                 } catch (IllegalArgumentException e) {
                     this.log.error("can't decode: " + fields[this.fieldToEncode], e);
                 }
                 StringBuilder sb = new StringBuilder();
                 for (String field : fields) {
                     sb.append(field);
-                    sb.append("\t");
+                    sb.append(TAB);
                 }
                 sb.deleteCharAt(sb.length() - 1);
                 sb.append("\n");
                 fw.write(sb.toString());
             }
         } catch (IOException e) {
-            this.log.error(e.getMessage(), e);
+            this.log.error("can't read/write to extract", e);
         }
     }
 }

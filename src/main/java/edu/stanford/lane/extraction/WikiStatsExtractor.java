@@ -17,6 +17,9 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
+ * extract pageview stats from Wikipedia; note that dates, English language, access and agent values are all hard-coded
+ * and specific to this project
+ *
  * @author ryanmax
  */
 public class WikiStatsExtractor extends AbstractExtractor implements Extractor {
@@ -58,13 +61,12 @@ public class WikiStatsExtractor extends AbstractExtractor implements Extractor {
                 String json = getContent(getUrl(line));
                 int views = jsonToStats(json);
                 fw.write(line);
-                fw.write("\t");
+                fw.write(TAB);
                 fw.write(Integer.toString(views));
-                fw.write("\n");
-                System.out.println(line + "\t" + views);
+                fw.write(TAB);
             }
         } catch (IOException e) {
-            this.log.error(e.getMessage(), e);
+            this.log.error("can't read/write to extract", e);
         }
     }
 
@@ -73,7 +75,7 @@ public class WikiStatsExtractor extends AbstractExtractor implements Extractor {
         try {
             encodedPage = URLEncoder.encode(encodedPage, StandardCharsets.UTF_8.name());
         } catch (UnsupportedEncodingException e) {
-            this.log.error(e.getMessage(), e);
+            this.log.error("won't happen", e);
         }
         String url = BASE_URL.replace("{page}", encodedPage);
         url = url.replace("{startDate}", this.startDate);
@@ -88,7 +90,7 @@ public class WikiStatsExtractor extends AbstractExtractor implements Extractor {
             try {
                 statsData = this.mapper.readValue(json, Map.class);
             } catch (IOException e) {
-                this.log.error(e.getMessage(), e);
+                this.log.error("error deserializing json", e);
             }
             List<Map<String, Object>> list = (List<Map<String, Object>>) statsData.get("items");
             for (Map<String, Object> map : list) {

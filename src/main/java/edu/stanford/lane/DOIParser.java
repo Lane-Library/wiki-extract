@@ -22,6 +22,14 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * Extract DOIs from a link to doi.org. Assumes link's hostname will end in .org and DOI's begin with 10. or look
+ * "shortened" (http://www.doi.org/doi_handbook/2_Numbering.html#2.10). One link can return more than one DOI because of
+ * DOI aliasing (e.g. http://doi.org/api/handles/10.1007/bf00140587). Includes a primitive caching mechanism because DOI
+ * lookups from http://doi.org/api/handles/ are slow. File-based caching also allows faster lookups across runs.
+ *
+ * @author ryanmax
+ */
 public class DOIParser {
 
     private static ObjectMapper mapper = new ObjectMapper();
@@ -79,7 +87,7 @@ public class DOIParser {
      *
      * @param link
      *            String containing a DOI
-     * @return DOI or empty if no DOI found
+     * @return List of DOIs or empty if no DOI found
      */
     public List<String> parse(final String link) {
         if (null != this.parsedDois && this.parsedDois.containsKey(link)) {
