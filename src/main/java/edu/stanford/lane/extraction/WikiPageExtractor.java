@@ -1,6 +1,5 @@
 package edu.stanford.lane.extraction;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
@@ -15,9 +14,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -28,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 import edu.stanford.lane.WikiExtractException;
 
@@ -46,8 +41,6 @@ public class WikiPageExtractor extends AbstractExtractor implements Extractor {
 
     private List<String> categories = new ArrayList<>();
 
-    private DocumentBuilderFactory factory;
-
     private Set<String> pages = new HashSet<>();
 
     private String path;
@@ -58,7 +51,6 @@ public class WikiPageExtractor extends AbstractExtractor implements Extractor {
         for (String l : categories.split(",")) {
             this.categories.add(l);
         }
-        this.factory = DocumentBuilderFactory.newInstance();
         this.xpath = XPathFactory.newInstance().newXPath();
         this.path = outputPath;
         File directory = new File(this.path);
@@ -70,8 +62,8 @@ public class WikiPageExtractor extends AbstractExtractor implements Extractor {
     @Override
     public void extract() {
         LOG.info(" - start - page extraction");
-        LOG.info("path: " + this.path);
-        LOG.info("categories: " + this.categories);
+        LOG.info("path: {}", this.path);
+        LOG.info("categories: {}", this.categories);
         for (String cat : this.categories) {
             extract(cat.trim());
         }
@@ -92,19 +84,11 @@ public class WikiPageExtractor extends AbstractExtractor implements Extractor {
             while (more) {
                 String xmlContent = getContent(
                         query + "&cmcontinue=" + URLEncoder.encode(cmcontinue, StandardCharsets.UTF_8.name()));
-                Document doc;
+                Document doc = xmlToDocument(xmlContent);
                 NodeList cmNodes = null;
+                more = moreToParse(doc);
                 try {
-                    this.factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-                    doc = this.factory.newDocumentBuilder().parse(new ByteArrayInputStream(xmlContent.getBytes()));
-                    NodeList continueNode = (NodeList) this.xpath.evaluate("/api/continue", doc,
-                            XPathConstants.NODESET);
-                    if (continueNode.getLength() == 0) {
-                        more = false;
-                    } else {
-                        cmcontinue = (String) this.xpath.evaluate("/api/continue/@cmcontinue", doc,
-                                XPathConstants.STRING);
-                    }
+                    cmcontinue = (String) this.xpath.evaluate("/api/continue/@cmcontinue", doc, XPathConstants.STRING);
                     cmNodes = (NodeList) this.xpath.evaluate("/api/query/categorymembers/cm", doc,
                             XPathConstants.NODESET);
                     for (int n = 0; n < cmNodes.getLength(); n++) {
@@ -113,7 +97,6 @@ public class WikiPageExtractor extends AbstractExtractor implements Extractor {
                         String ns = el.getAttribute("ns");
                         String title = el.getAttribute("title");
                         sb.append(cat);
-                        // sb.append(TAB).append(el.getAttribute("pageid"));
                         sb.append(TAB).append(ns);
                         sb.append(TAB).append(title);
                         sb.append(RETURN);
@@ -125,7 +108,7 @@ public class WikiPageExtractor extends AbstractExtractor implements Extractor {
                         }
                         fw.write(sb.toString());
                     }
-                } catch (SAXException | IOException | ParserConfigurationException | XPathExpressionException e) {
+                } catch (IOException | XPathExpressionException e) {
                     LOG.error("failed to fetch data", e);
                 }
             }
@@ -133,6 +116,19 @@ public class WikiPageExtractor extends AbstractExtractor implements Extractor {
             LOG.error(e.getMessage(), e);
             throw new WikiExtractException(e);
         }
+    }
+
+    private boolean moreToParse(final Document doc) {
+        NodeList continueNode = null;
+        try {
+            continueNode = (NodeList) this.xpath.evaluate("/api/continue/@cmcontinue", doc, XPathConstants.NODESET);
+        } catch (XPathExpressionException e) {
+            LOG.error("error determining if more content to parse", e);
+        }
+        if (null != continueNode && continueNode.getLength() != 0) {
+            return true;
+        }
+        return false;
     }
 
     private void writeLine(final FileWriter fw, final String cat, final String ns, final String title)

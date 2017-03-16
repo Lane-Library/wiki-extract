@@ -1,6 +1,7 @@
 package edu.stanford.lane.extraction;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -8,8 +9,14 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
 /**
  * @author ryanmax
@@ -23,6 +30,8 @@ public abstract class AbstractExtractor {
     private static final int FIVE_SECONDS = 5000;
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractExtractor.class);
+
+    private DocumentBuilderFactory factory;
 
     protected String getContent(final String link) {
         StringBuilder content = new StringBuilder();
@@ -53,5 +62,20 @@ public abstract class AbstractExtractor {
             LOG.info("can't fetch data for url: {}", url, e);
         }
         return content.toString();
+    }
+
+    protected Document xmlToDocument(final String xmlContent) {
+        if (null == this.factory) {
+            this.factory = DocumentBuilderFactory.newInstance();
+        }
+        Document doc = null;
+        try {
+            this.factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            doc = this.factory.newDocumentBuilder()
+                    .parse(new ByteArrayInputStream(xmlContent.getBytes(StandardCharsets.UTF_8)));
+        } catch (SAXException | IOException | ParserConfigurationException e) {
+            LOG.error("failed to parse xml: {}", xmlContent, e);
+        }
+        return doc;
     }
 }

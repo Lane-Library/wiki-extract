@@ -1,6 +1,5 @@
 package edu.stanford.lane.extraction;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -16,9 +15,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -29,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 import edu.stanford.lane.WikiExtractException;
 
@@ -49,8 +44,6 @@ public class WikiLinkExtractor extends AbstractExtractor implements Extractor {
 
     private String euquery;
 
-    private DocumentBuilderFactory factory;
-
     private List<String> languages = new ArrayList<>();
 
     private String namespace;
@@ -68,7 +61,6 @@ public class WikiLinkExtractor extends AbstractExtractor implements Extractor {
         for (String l : languages.split(",")) {
             this.languages.add(l);
         }
-        this.factory = DocumentBuilderFactory.newInstance();
         this.xpath = XPathFactory.newInstance().newXPath();
         String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
         this.path = outputPath + "/" + date;
@@ -183,17 +175,5 @@ public class WikiLinkExtractor extends AbstractExtractor implements Extractor {
         } catch (IOException e) {
             LOG.error("can't write line", e);
         }
-    }
-
-    private Document xmlToDocument(final String xmlContent) {
-        Document doc = null;
-        try {
-            this.factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-            doc = this.factory.newDocumentBuilder()
-                    .parse(new ByteArrayInputStream(xmlContent.getBytes(StandardCharsets.UTF_8)));
-        } catch (SAXException | IOException | ParserConfigurationException e) {
-            LOG.error("failed to parse xml: {}", xmlContent, e);
-        }
-        return doc;
     }
 }
