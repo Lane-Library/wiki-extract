@@ -132,11 +132,11 @@ public class PubmedExtractor extends AbstractExtractor implements Extractor {
                 String pmid = doiToPmid(doi);
                 if (!pmid.isEmpty()) {
                     for (String type : pmidToPubTypes(pmid)) {
-                        fw.write(doi.toString().getBytes(StandardCharsets.UTF_8));
+                        fw.write(doi.getBytes(StandardCharsets.UTF_8));
                         fw.write(TAB);
-                        fw.write(pmid.toString().getBytes(StandardCharsets.UTF_8));
+                        fw.write(pmid.getBytes(StandardCharsets.UTF_8));
                         fw.write(TAB);
-                        fw.write(type.toString().getBytes(StandardCharsets.UTF_8));
+                        fw.write(type.getBytes(StandardCharsets.UTF_8));
                         fw.write(RETURN);
                     }
                 }
