@@ -44,13 +44,13 @@ import org.slf4j.LoggerFactory;
  *
  * @author ryanmax
  */
-public class DateReduceMWCites {
+public final class DateReduceMWCites {
 
     private static final Instant end = Instant.parse("2016-09-01T00:00:00Z");
 
     private static final Logger LOG = LoggerFactory.getLogger(DateReduceMWCites.class);
 
-    private DateReduceMWCites(final String inputFile) throws IOException {
+    private DateReduceMWCites(final String inputFile) {
         File in = new File(inputFile);
         if (in.exists()) {
             File outfile = new File(inputFile + "-out.txt");
@@ -77,8 +77,10 @@ public class DateReduceMWCites {
         }
     }
 
-    public static void main(final String[] args) throws IOException {
-        new DateReduceMWCites(
-                "/Users/ryanmax/workspaces/workbench/wiki-mwcites/data/cites/data/doi_isbn_pubmed_and_arxiv.enwiki-20161201.tsv");
+    public static void main(final String[] args) {
+        if (args.length != 1) {
+            LOG.error("expected path as only argument");
+        }
+        new DateReduceMWCites(args[0]);
     }
 }
