@@ -2,9 +2,11 @@ package edu.stanford.lane.analysis;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 
 import org.slf4j.Logger;
@@ -48,12 +50,12 @@ public class DateReduceMWCites {
 
     private static final Logger LOG = LoggerFactory.getLogger(DateReduceMWCites.class);
 
-    public DateReduceMWCites(final String inputFile) throws IOException {
+    private DateReduceMWCites(final String inputFile) throws IOException {
         File in = new File(inputFile);
         if (in.exists()) {
             File outfile = new File(inputFile + "-out.txt");
-            outfile.createNewFile();
-            try (BufferedReader br = new BufferedReader(new FileReader(in));
+            try (BufferedReader br = new BufferedReader(
+                    new InputStreamReader(new FileInputStream(in), StandardCharsets.UTF_8));
                     FileOutputStream outFos = new FileOutputStream(outfile)) {
                 String line;
                 String idType;
@@ -65,7 +67,7 @@ public class DateReduceMWCites {
                         timestamp = fields[3];
                         Instant i = Instant.parse(timestamp);
                         if (i.isBefore(end)) {
-                            outFos.write((line + "\n").getBytes());
+                            outFos.write((line + "\n").getBytes(StandardCharsets.UTF_8));
                         }
                     }
                 }
