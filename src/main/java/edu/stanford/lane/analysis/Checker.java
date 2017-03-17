@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author ryanmax
  */
-public class Checker {
+public final class Checker {
 
     private static final Logger LOG = LoggerFactory.getLogger(Checker.class);
 

@@ -19,19 +19,20 @@ import org.slf4j.LoggerFactory;
  *
  * @author ryanmax
  */
-public class URLDecodeFile {
+public final class URLDecodeFile {
 
     private static final Logger LOG = LoggerFactory.getLogger(URLDecodeFile.class);
 
-    public URLDecodeFile() {
+    private URLDecodeFile() {
         // empty private constructor
     }
 
     public static void main(final String[] args) {
-        decode(args[0], Integer.parseInt(args[1]));
+        URLDecodeFile d = new URLDecodeFile();
+        d.decode(args[0], Integer.parseInt(args[1]));
     }
 
-    private static void decode(final String inputFile, final int fieldToEncode) {
+    private void decode(final String inputFile, final int fieldToEncode) {
         File input = new File(inputFile);
         try (BufferedReader br = new BufferedReader(
                 new InputStreamReader(new FileInputStream(input), StandardCharsets.UTF_8));
@@ -54,7 +55,7 @@ public class URLDecodeFile {
         }
     }
 
-    private static String doDecode(final String string) {
+    private String doDecode(final String string) {
         String decoded = string;
         try {
             decoded = URLDecoder.decode(decoded, StandardCharsets.UTF_8.name());

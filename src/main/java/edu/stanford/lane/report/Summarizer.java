@@ -33,7 +33,7 @@ import edu.stanford.lane.DOIParser;
  *
  * @author ryanmax
  */
-public class Summarizer {
+public final class Summarizer {
 
     protected enum Category {
         CAT_1_ONLY_PROJECT_MED, CAT_2_ONLY_NON_PROJECT_MED, CAT_3_BOTH_PROJECT_MED_AND_NON_PROJECT_MED, UNKOWN
