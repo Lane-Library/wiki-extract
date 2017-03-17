@@ -87,26 +87,12 @@ public class WikiPageExtractor extends AbstractExtractor implements Extractor {
                 String xmlContent = getContent(
                         query + "&cmcontinue=" + URLEncoder.encode(cmcontinue, StandardCharsets.UTF_8.name()));
                 Document doc = xmlToDocument(xmlContent);
-                NodeList cmNodes = null;
                 more = moreToParse(doc);
                 cmcontinue = (String) doXpath("/api/continue/@cmcontinue", doc, XPathConstants.STRING);
-                cmNodes = (NodeList) doXpath("/api/query/categorymembers/cm", doc, XPathConstants.NODESET);
-                for (int n = 0; n < cmNodes.getLength(); n++) {
-                    Element el = (Element) cmNodes.item(n);
-                    StringBuilder sb = new StringBuilder();
+                for (Element el : extractElementsFromCmNodes(doc)) {
                     String ns = el.getAttribute("ns");
                     String title = el.getAttribute("title");
-                    sb.append(cat);
-                    sb.append(TAB).append(ns);
-                    sb.append(TAB).append(title);
-                    sb.append(RETURN);
                     writeLine(fw, cat, ns, title);
-                    if ("1".equals(ns)) {
-                        // if need pageid, need another API call, 500 titles at a time for bots:
-                        // /w/api.php?action=query&format=json&prop=pageprops&titles=Fungus%7CGenetics
-                        writeLine(fw, cat, "0", title.replaceFirst("^Talk:", ""));
-                    }
-                    fw.write(sb.toString().getBytes(StandardCharsets.UTF_8));
                 }
             }
         } catch (IOException e) {
@@ -123,6 +109,16 @@ public class WikiPageExtractor extends AbstractExtractor implements Extractor {
             LOG.error("xpath error", e);
         }
         return o;
+    }
+
+    private List<Element> extractElementsFromCmNodes(final Document doc) {
+        List<Element> elements = new ArrayList<>();
+        NodeList cmNodes = (NodeList) doXpath("/api/query/categorymembers/cm", doc, XPathConstants.NODESET);
+        for (int n = 0; n < cmNodes.getLength(); n++) {
+            Element el = (Element) cmNodes.item(n);
+            elements.add(el);
+        }
+        return elements;
     }
 
     private boolean moreToParse(final Document doc) {
@@ -148,6 +144,11 @@ public class WikiPageExtractor extends AbstractExtractor implements Extractor {
             fw.write(sb.toString().getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             LOG.error("error writing", e);
+        }
+        if ("1".equals(ns)) {
+            // if need pageid, need another API call, 500 titles at a time for bots:
+            // /w/api.php?action=query&format=json&prop=pageprops&titles=Fungus%7CGenetics
+            writeLine(fw, cat, "0", title.replaceFirst("^Talk:", ""));
         }
         this.pages.add(ns + ":::" + title);
     }
