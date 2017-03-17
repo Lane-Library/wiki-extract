@@ -2,18 +2,19 @@ package edu.stanford.lane.extraction;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
+import javax.xml.namespace.QName;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -41,7 +42,7 @@ public class WikiPageExtractor extends AbstractExtractor implements Extractor {
 
     private List<String> categories = new ArrayList<>();
 
-    private Set<String> pages = new HashSet<>();
+    private HashSet<String> pages = new HashSet<>();
 
     private String path;
 
@@ -53,9 +54,10 @@ public class WikiPageExtractor extends AbstractExtractor implements Extractor {
         }
         this.xpath = XPathFactory.newInstance().newXPath();
         this.path = outputPath;
-        File directory = new File(this.path);
-        if (!directory.exists()) {
-            directory.mkdir();
+        try {
+            Files.createDirectories(Paths.get(this.path));
+        } catch (IOException e) {
+            LOG.error("can't create directory {}", this.path, e);
         }
     }
 
@@ -77,7 +79,7 @@ public class WikiPageExtractor extends AbstractExtractor implements Extractor {
 
     public void extract(final String cat) {
         String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-        try (FileWriter fw = new FileWriter(this.path + "/" + date + "-out.txt", true)) {
+        try (FileOutputStream fw = new FileOutputStream(new File(this.path + "/" + date + "-out.txt"), true)) {
             String query = BASE_URL + "&cmtitle=" + URLEncoder.encode(cat, StandardCharsets.UTF_8.name());
             boolean more = true;
             String cmcontinue = "";
@@ -87,35 +89,40 @@ public class WikiPageExtractor extends AbstractExtractor implements Extractor {
                 Document doc = xmlToDocument(xmlContent);
                 NodeList cmNodes = null;
                 more = moreToParse(doc);
-                try {
-                    cmcontinue = (String) this.xpath.evaluate("/api/continue/@cmcontinue", doc, XPathConstants.STRING);
-                    cmNodes = (NodeList) this.xpath.evaluate("/api/query/categorymembers/cm", doc,
-                            XPathConstants.NODESET);
-                    for (int n = 0; n < cmNodes.getLength(); n++) {
-                        Element el = (Element) cmNodes.item(n);
-                        StringBuilder sb = new StringBuilder();
-                        String ns = el.getAttribute("ns");
-                        String title = el.getAttribute("title");
-                        sb.append(cat);
-                        sb.append(TAB).append(ns);
-                        sb.append(TAB).append(title);
-                        sb.append(RETURN);
-                        writeLine(fw, cat, ns, title);
-                        if ("1".equals(ns)) {
-                            // if need pageid, need another API call, 500 titles at a time for bots:
-                            // /w/api.php?action=query&format=json&prop=pageprops&titles=Fungus%7CGenetics
-                            writeLine(fw, cat, "0", title.replaceFirst("^Talk:", ""));
-                        }
-                        fw.write(sb.toString());
+                cmcontinue = (String) doXpath("/api/continue/@cmcontinue", doc, XPathConstants.STRING);
+                cmNodes = (NodeList) doXpath("/api/query/categorymembers/cm", doc, XPathConstants.NODESET);
+                for (int n = 0; n < cmNodes.getLength(); n++) {
+                    Element el = (Element) cmNodes.item(n);
+                    StringBuilder sb = new StringBuilder();
+                    String ns = el.getAttribute("ns");
+                    String title = el.getAttribute("title");
+                    sb.append(cat);
+                    sb.append(TAB).append(ns);
+                    sb.append(TAB).append(title);
+                    sb.append(RETURN);
+                    writeLine(fw, cat, ns, title);
+                    if ("1".equals(ns)) {
+                        // if need pageid, need another API call, 500 titles at a time for bots:
+                        // /w/api.php?action=query&format=json&prop=pageprops&titles=Fungus%7CGenetics
+                        writeLine(fw, cat, "0", title.replaceFirst("^Talk:", ""));
                     }
-                } catch (IOException | XPathExpressionException e) {
-                    LOG.error("failed to fetch data", e);
+                    fw.write(sb.toString().getBytes(StandardCharsets.UTF_8));
                 }
             }
         } catch (IOException e) {
-            LOG.error(e.getMessage(), e);
+            LOG.error("error fetching pages", e);
             throw new WikiExtractException(e);
         }
+    }
+
+    private Object doXpath(final String expression, final Document doc, final QName qname) {
+        Object o = null;
+        try {
+            o = this.xpath.evaluate(expression, doc, qname);
+        } catch (XPathExpressionException e) {
+            LOG.error("xpath error", e);
+        }
+        return o;
     }
 
     private boolean moreToParse(final Document doc) {
@@ -131,15 +138,17 @@ public class WikiPageExtractor extends AbstractExtractor implements Extractor {
         return false;
     }
 
-    private void writeLine(final FileWriter fw, final String cat, final String ns, final String title)
-            throws IOException {
+    private void writeLine(final FileOutputStream fw, final String cat, final String ns, final String title) {
         StringBuilder sb = new StringBuilder();
         sb.append(cat);
-        // sb.append(TAB).append(el.getAttribute("pageid"));
         sb.append(TAB).append(ns);
         sb.append(TAB).append(title);
         sb.append(RETURN);
-        fw.write(sb.toString());
+        try {
+            fw.write(sb.toString().getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            LOG.error("error writing", e);
+        }
         this.pages.add(ns + ":::" + title);
     }
 }
