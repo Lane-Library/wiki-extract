@@ -2,9 +2,10 @@ package edu.stanford.lane.extraction;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -54,15 +55,16 @@ public class WikiStatsExtractor extends AbstractExtractor implements Extractor {
     }
 
     private void extract(final File input) {
-        try (BufferedReader br = new BufferedReader(new FileReader(input));
-                FileWriter fw = new FileWriter(this.inputFile + "-out.txt", true);) {
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(new FileInputStream(input), StandardCharsets.UTF_8));
+                FileOutputStream fw = new FileOutputStream(new File(this.inputFile + "-out.txt"), true)) {
             String line;
             while ((line = br.readLine()) != null) {
                 String json = getContent(getUrl(line));
                 int views = jsonToStats(json);
-                fw.write(line);
+                fw.write(line.getBytes(StandardCharsets.UTF_8));
                 fw.write(TAB);
-                fw.write(Integer.toString(views));
+                fw.write(Integer.toString(views).getBytes(StandardCharsets.UTF_8));
                 fw.write(TAB);
             }
         } catch (IOException e) {
@@ -71,7 +73,7 @@ public class WikiStatsExtractor extends AbstractExtractor implements Extractor {
     }
 
     private String getUrl(final String page) {
-        String encodedPage = page.replace(" ", "_");
+        String encodedPage = page.replace(' ', '_');
         try {
             encodedPage = URLEncoder.encode(encodedPage, StandardCharsets.UTF_8.name());
         } catch (UnsupportedEncodingException e) {
@@ -79,8 +81,7 @@ public class WikiStatsExtractor extends AbstractExtractor implements Extractor {
         }
         String url = BASE_URL.replace("{page}", encodedPage);
         url = url.replace("{startDate}", this.startDate);
-        url = url.replace("{endDate}", this.endDate);
-        return url;
+        return url.replace("{endDate}", this.endDate);
     }
 
     private int jsonToStats(final String json) {
