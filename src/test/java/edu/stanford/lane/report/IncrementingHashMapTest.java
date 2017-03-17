@@ -16,7 +16,7 @@ public class IncrementingHashMapTest {
     }
 
     @Test
-    public final void test() {
+    public final void testIncrementer() {
         assertEquals(null, this.map.get("foo"));
         this.map.add("foo");
         assertTrue(this.map.containsKey("foo"));

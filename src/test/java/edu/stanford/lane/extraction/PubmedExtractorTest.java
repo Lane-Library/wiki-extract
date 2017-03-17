@@ -11,7 +11,7 @@ public class PubmedExtractorTest {
 
     
     @Test
-    public final void test() {
+    public final void testExtractor() {
     PubmedExtractor articleExtractor = new PubmedExtractor(null);    
     assertEquals("21677750", articleExtractor.doiToPmid("10.1038/nature10163"));
     assertEquals("", articleExtractor.doiToPmid("test"));
