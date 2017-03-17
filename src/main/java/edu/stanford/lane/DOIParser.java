@@ -41,7 +41,7 @@ public class DOIParser {
 
     private static final int TEN_SECS = 1000 * 10;
 
-    private Map<String, List<String>> parsedDois;
+    private HashMap<String, List<String>> parsedDois;
 
     public DOIParser() {
         // empty
@@ -125,7 +125,7 @@ public class DOIParser {
                 this.parsedDois = new HashMap<>();
             } else {
                 try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(objFile))) {
-                    this.parsedDois = (Map<String, List<String>>) ois.readObject();
+                    this.parsedDois = (HashMap<String, List<String>>) ois.readObject();
                 } catch (IOException | ClassNotFoundException e) {
                     LOG.error("can't load parsed DOI object file", e);
                 }
