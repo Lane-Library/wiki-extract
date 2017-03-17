@@ -114,9 +114,11 @@ public class WikiPageExtractor extends AbstractExtractor implements Extractor {
     private List<Element> extractElementsFromCmNodes(final Document doc) {
         List<Element> elements = new ArrayList<>();
         NodeList cmNodes = (NodeList) doXpath("/api/query/categorymembers/cm", doc, XPathConstants.NODESET);
-        for (int n = 0; n < cmNodes.getLength(); n++) {
-            Element el = (Element) cmNodes.item(n);
-            elements.add(el);
+        if (null != cmNodes) {
+            for (int n = 0; n < cmNodes.getLength(); n++) {
+                Element el = (Element) cmNodes.item(n);
+                elements.add(el);
+            }
         }
         return elements;
     }
