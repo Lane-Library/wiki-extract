@@ -50,7 +50,19 @@ public final class DateReduceMWCites {
 
     private static final Logger LOG = LoggerFactory.getLogger(DateReduceMWCites.class);
 
-    private DateReduceMWCites(final String inputFile) {
+    private DateReduceMWCites() {
+        // empty private constructor
+    }
+
+    public static void main(final String[] args) {
+        if (args.length != 1) {
+            LOG.error("expected path as only argument");
+        }
+        DateReduceMWCites r = new DateReduceMWCites();
+        r.reduce(args[0]);
+    }
+
+    private void reduce(final String inputFile) {
         File in = new File(inputFile);
         if (in.exists()) {
             File outfile = new File(inputFile + "-out.txt");
@@ -75,12 +87,5 @@ public final class DateReduceMWCites {
                 LOG.error("can't read file", e);
             }
         }
-    }
-
-    public static void main(final String[] args) {
-        if (args.length != 1) {
-            LOG.error("expected path as only argument");
-        }
-        new DateReduceMWCites(args[0]);
     }
 }

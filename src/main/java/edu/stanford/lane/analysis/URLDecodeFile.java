@@ -14,7 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * simple utility used to URL decode DOIs from CrossRef (Joe Wass) assumes tab-delimited input; first argument is DOI field index
+ * simple utility used to URL decode DOIs from CrossRef (Joe Wass) assumes tab-delimited input; first argument is DOI
+ * field index
  *
  * @author ryanmax
  */
@@ -22,31 +23,23 @@ public class URLDecodeFile {
 
     private static final Logger LOG = LoggerFactory.getLogger(URLDecodeFile.class);
 
-    private int fieldToEncode;
-
-    private String inputFile;
-
-    public URLDecodeFile(final String inputFile, final int fieldToEncode) {
-        this.inputFile = inputFile;
-        this.fieldToEncode = fieldToEncode;
-        File in = new File(this.inputFile);
-        if (in.exists()) {
-            decode(in);
-        }
+    public URLDecodeFile() {
+        // empty private constructor
     }
 
     public static void main(final String[] args) {
-        new URLDecodeFile(args[0], Integer.parseInt(args[1]));
+        decode(args[0], Integer.parseInt(args[1]));
     }
 
-    private void decode(final File input) {
+    private static void decode(final String inputFile, final int fieldToEncode) {
+        File input = new File(inputFile);
         try (BufferedReader br = new BufferedReader(
                 new InputStreamReader(new FileInputStream(input), StandardCharsets.UTF_8));
-                FileOutputStream outFos = new FileOutputStream(new File(this.inputFile + "-decoded.txt"))) {
+                FileOutputStream outFos = new FileOutputStream(new File(input.getAbsolutePath() + "-decoded.txt"))) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] fields = line.split("\t");
-                fields[this.fieldToEncode] = doDecode(fields[this.fieldToEncode]);
+                fields[fieldToEncode] = doDecode(fields[fieldToEncode]);
                 StringBuilder sb = new StringBuilder();
                 for (String field : fields) {
                     sb.append(field);
@@ -61,7 +54,7 @@ public class URLDecodeFile {
         }
     }
 
-    private String doDecode(final String string) {
+    private static String doDecode(final String string) {
         String decoded = string;
         try {
             decoded = URLDecoder.decode(decoded, StandardCharsets.UTF_8.name());

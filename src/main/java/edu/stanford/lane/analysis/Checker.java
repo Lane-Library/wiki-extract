@@ -21,7 +21,16 @@ public class Checker {
 
     private static final Logger LOG = LoggerFactory.getLogger(Checker.class);
 
-    public Checker(final String inputFile1, final String inputFile2) {
+    private Checker() {
+        // empty private constructor
+    }
+
+    public static void main(final String[] args) {
+        Checker c = new Checker();
+        c.check(args[0], args[1]);
+    }
+
+    private void check(final String inputFile1, final String inputFile2) {
         Set<String> strings1 = new HashSet<>();
         Set<String> strings2 = new HashSet<>();
         File in = new File(inputFile1);
@@ -37,10 +46,6 @@ public class Checker {
                 System.out.println(doi);
             }
         }
-    }
-
-    public static void main(final String[] args) {
-        new Checker(args[0], args[1]);
     }
 
     private Set<String> extract(final File input) {

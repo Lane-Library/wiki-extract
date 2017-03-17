@@ -51,6 +51,15 @@ public class Summarizer {
 
     private Set<String> uniqueEntries = new HashSet<>();
 
+    private Summarizer() {
+        // empty private constructor
+    }
+
+    public static void main(final String[] args) {
+        Summarizer summarizer = new Summarizer();
+        summarizer.summarize(args);
+    }
+
     /**
      * summarize wiki extract data files; re-parse DOI from link_to_doi.org field because parsing changed after data was
      * originally extracted from wikipedia
@@ -70,7 +79,7 @@ public class Summarizer {
      * @param inputFiles
      *            list of input file paths
      */
-    public Summarizer(final String[] inputFiles) {
+    public void summarize(final String[] inputFiles) {
         DOIParser doiParser = new DOIParser();
         for (String file : inputFiles) {
             File in = new File(file);
@@ -98,10 +107,6 @@ public class Summarizer {
         } catch (IOException e) {
             LOG.error("can't write output", e);
         }
-    }
-
-    public static void main(final String[] args) {
-        new Summarizer(args);
     }
 
     private void extract(final File input) {
