@@ -124,12 +124,7 @@ public class WikiPageExtractor extends AbstractExtractor implements Extractor {
     }
 
     private boolean moreToParse(final Document doc) {
-        NodeList continueNode = null;
-        try {
-            continueNode = (NodeList) this.xpath.evaluate("/api/continue/@cmcontinue", doc, XPathConstants.NODESET);
-        } catch (XPathExpressionException e) {
-            LOG.error("error determining if more content to parse", e);
-        }
+        NodeList continueNode = (NodeList) doXpath("/api/continue/@cmcontinue", doc, XPathConstants.NODESET);
         if (null != continueNode && continueNode.getLength() != 0) {
             return true;
         }
