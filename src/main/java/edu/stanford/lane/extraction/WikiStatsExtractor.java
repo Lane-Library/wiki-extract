@@ -18,19 +18,23 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * extract pageview stats from Wikipedia; note that dates, English language, access and agent values are all hard-coded
- * and specific to this project
+ * extract pageview stats from Wikipedia; note that English language and access params are hard-coded and specific to
+ * this project
  *
  * @author ryanmax
  */
 public class WikiStatsExtractor extends AbstractExtractor implements Extractor {
 
+    // https://tools.wmflabs.org/pageviews/url_structure/
     // project: en.wikipedia.org
     // access: all-access (desktop, mobile-app, mobile-web)
-    // agent: user (NOT spider or bot)
-    private static final String BASE_URL = "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/{page}/daily/20160801/20160831";
+    // agent: One of user (human viewer, default), spider (search engine crawlers), bot (WMF bots) or all-agents (user,
+    // spider and bot)
+    private static final String BASE_URL = "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/{agent}/{page}/daily/{startDate}/{endDate}";
 
     private static final Logger LOG = LoggerFactory.getLogger(WikiStatsExtractor.class);
+
+    private String agent;
 
     private String endDate;
 
@@ -40,8 +44,10 @@ public class WikiStatsExtractor extends AbstractExtractor implements Extractor {
 
     private String startDate;
 
-    public WikiStatsExtractor(final String inputFile, final String startDate, final String endDate) {
+    public WikiStatsExtractor(final String inputFile, final String agent, final String startDate,
+            final String endDate) {
         this.inputFile = inputFile;
+        this.agent = agent;
         this.startDate = startDate;
         this.endDate = endDate;
     }
@@ -65,7 +71,7 @@ public class WikiStatsExtractor extends AbstractExtractor implements Extractor {
                 fw.write(line.getBytes(StandardCharsets.UTF_8));
                 fw.write(TAB);
                 fw.write(Integer.toString(views).getBytes(StandardCharsets.UTF_8));
-                fw.write(TAB);
+                fw.write(RETURN);
             }
         } catch (IOException e) {
             LOG.error("can't read/write to extract", e);
@@ -80,6 +86,7 @@ public class WikiStatsExtractor extends AbstractExtractor implements Extractor {
             LOG.error("won't happen", e);
         }
         String url = BASE_URL.replace("{page}", encodedPage);
+        url = url.replace("{agent}", this.agent);
         url = url.replace("{startDate}", this.startDate);
         return url.replace("{endDate}", this.endDate);
     }
@@ -93,7 +100,7 @@ public class WikiStatsExtractor extends AbstractExtractor implements Extractor {
             } catch (IOException e) {
                 LOG.error("error deserializing json", e);
             }
-            if (null != statsData) {
+            if (null != statsData && null != statsData.get("items")) {
                 List<Map<String, Object>> list = (List<Map<String, Object>>) statsData.get("items");
                 for (Map<String, Object> map : list) {
                     int views = (int) map.get("views");
