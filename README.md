@@ -1,5 +1,10 @@
 # wiki-extract: extract external link data from Wikipedia
 
+## Published paper
+[Wikipedia as a gateway to biomedical research: The relative distribution and use of citations in the English Wikipedia](http://dx.plos.org/10.1371/journal.pone.0190046)  
+Maggio LA, Willinsky JM, Steinberg RM, Mietchen D, Wass JL, Dong T.  
+PLoS One. 2017;12(12):e0190046. doi: 10.1371/journal.pone.0190046.
+
 ## Prerequisites
 * Java 8
 * [Apache Maven](http://maven.apache.org/)
